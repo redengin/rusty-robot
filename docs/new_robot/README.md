@@ -44,8 +44,9 @@ Choose digital components from the [supported list](/docs/componenents.md).
 
 
 Step 5 - System Test
+--------------------------------------------------------------------------------
 * Leverage the self-test methods to ascertain if the hardware is working correctly
-* repeat the task(s) until confident of repeatable performance
+    * repeat the task(s) until confident of repeatable performance
 
 
 
