@@ -1,0 +1,30 @@
+[package]
+name = "f405"
+version = "0.1.0"
+license = "Apache-2.0"
+authors = ["redengin <sholstei@yahoo.com>"]
+edition = "2021"
+
+[dependencies]
+cortex-m = "0.7"
+cortex-m-rt = "0.7"
+panic-probe = { version = "*", features = ["defmt"] }
+
+[dependencies.stm32f4xx-hal]
+version = "*"
+features = ["stm32f405", "defmt", ]
+
+
+[build-dependencies]
+reqwest = { version = "*", features = ["blocking"] }
+
+# Set the default for dependencies.
+[profile.dev.package."*"]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+incremental = false
+debug = true
+lto = true
+opt-level = "s"
