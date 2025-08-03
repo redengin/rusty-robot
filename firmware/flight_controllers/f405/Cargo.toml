@@ -6,6 +6,8 @@ edition = "2024"
 
 [dependencies]
 cortex-m-rt = "*"
+defmt = "*"
+# defmt-rtt = "*"
 panic-probe = { version = "*", features = ["print-defmt"] }
 embassy-stm32 = { version = "*", features = [
     "stm32f405rg",
@@ -19,3 +21,4 @@ embassy-stm32 = { version = "*", features = [
 embassy-executor = { version = "*", features = [
     "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"
 ] }
+embassy-time = "*"
