@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+
+<sdf version="1.9">
+    <world name="openworld">
+
+        <!-- betaflight max control loop rate 8kHz -->
+        <physics name="8KHz" type="ignored">
+            <max_step_size>0.000125</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+        </physics>
+
+        <!-- boilerplate plugins -->
+        <plugin
+            filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster" />
+        <plugin
+            filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands" />
+        <plugin
+            filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics" />
+
+        <!-- simulated sensors -->
+        <plugin
+            filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
+
+        <!-- ground plane -->
+        <model name="ground_plane">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>200 200</size>
+                        </plane>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>200 200</size>
+                        </plane>
+                    </geometry>
+                    <material>
+                        <ambient>0.4 0.4 0.8 0.5</ambient>
+                        <diffuse>0.4 0.4 0.8 0.5</diffuse>
+                        <specular>0.4 0.4 0.8 0.5</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <!-- drone -->
+        <include>
+            <uri>https://fuel.gazebosim.org/1.0/flow/models/Skybot 04</uri>
+            <plugin
+                filename="gz-sim-physics-system"
+                name="gz::sim::systems::Physics" />
+            <plugin
+                filename="gz-sim-sensors-system"
+                name="gz::sim::systems::Sensors">
+                <render_engine>ogre2</render_engine>
+            </plugin>
+            <!-- motors -->
+            <plugin
+                filename="gz-sim-multicopter-motor-model-system"
+                name="gz::sim::systems::MulticopterMotorModel">
+                <robotNamespace>bebop1</robotNamespace>
+                <jointName>propeller_rr_joint</jointName>
+                <linkName>propeller_rr</linkName>
+                <actuator_number>0</actuator_number>
+                <turningDirection>ccw</turningDirection>
+                <motorType>velocity</motorType>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.005964552</momentConstant>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>20</rotorVelocitySlowdownSim>
+            </plugin>
+            <plugin
+                filename="gz-sim-multicopter-motor-model-system"
+                name="gz::sim::systems::MulticopterMotorModel">
+                <robotNamespace>bebop1</robotNamespace>
+                <jointName>propeller_rl_joint</jointName>
+                <linkName>propeller_rl</linkName>
+                <actuator_number>1</actuator_number>
+                <turningDirection>cw</turningDirection>
+                <motorType>velocity</motorType>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.005964552</momentConstant>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>20</rotorVelocitySlowdownSim>
+            </plugin>
+            <plugin
+                filename="gz-sim-multicopter-motor-model-system"
+                name="gz::sim::systems::MulticopterMotorModel">
+                <robotNamespace>bebop1</robotNamespace>
+                <jointName>propeller_fr_joint</jointName>
+                <linkName>propeller_fr</linkName>
+                <actuator_number>2</actuator_number>
+                <turningDirection>cw</turningDirection>
+                <motorType>velocity</motorType>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.005964552</momentConstant>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>20</rotorVelocitySlowdownSim>
+            </plugin>
+            <plugin
+                filename="gz-sim-multicopter-motor-model-system"
+                name="gz::sim::systems::MulticopterMotorModel">
+                <robotNamespace>bebop1</robotNamespace>
+                <jointName>propeller_fl_joint</jointName>
+                <linkName>propeller_fl</linkName>
+                <actuator_number>3</actuator_number>
+                <turningDirection>ccw</turningDirection>
+                <motorType>velocity</motorType>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.005964552</momentConstant>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>20</rotorVelocitySlowdownSim>
+            </plugin>
+            <plugin
+                filename="gz-sim-multicopter-control-system"
+                name="gz::sim::systems::MulticopterVelocityControl">
+                <robotNamespace>rusty</robotNamespace>
+                <commandSubTopic>cmd_vel</commandSubTopic>
+                <enableSubTopic>enable</enableSubTopic>
+                <comLinkName>body</comLinkName>
+                <positionGain>5 5.5 3</positionGain>
+                <velocityGain>2 2.2 2</velocityGain>
+                <attitudeGain>0.2 0.2 0.2</attitudeGain>
+                <angularRateGain>0.03 0.03 0.05</angularRateGain>
+                <rotorConfiguration>
+                    <rotor>
+                        <jointName>propeller_rr_joint</jointName>
+                        <forceConstant>8.54858e-06</forceConstant>
+                        <momentConstant>0.005964552</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>propeller_rl_joint</jointName>
+                        <forceConstant>8.54858e-06</forceConstant>
+                        <momentConstant>0.005964552</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>propeller_fr_joint</jointName>
+                        <forceConstant>8.54858e-06</forceConstant>
+                        <momentConstant>0.005964552</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>propeller_fl_joint</jointName>
+                        <forceConstant>8.54858e-06</forceConstant>
+                        <momentConstant>0.005964552</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                </rotorConfiguration>
+            </plugin>
+        </include>
+
+    </world>
+</sdf>
