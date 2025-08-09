@@ -1,0 +1,32 @@
+[package]
+name = "rusty-robot-gazebo"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2024"
+
+
+[dependencies]
+# FIXME - embassy is unable to use separate crates for embassy-executor & embassy-time
+#   so we aren't able to gather cargo by version number
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
+    "arch-std",
+    "executor-thread",
+    "log",
+] }
+embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
+    "std",
+    "log",
+] }
+
+log = "*"
+env_logger = "*"
+
+# gazebo sim support
+gz = { version = "*", features=["harmonic"] }
+
+# driver traits
+rusty-robot-drivers = { path = "../../drivers" }
+
+
+[profile.release]
+debug = 2

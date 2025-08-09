@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "drivers",
+    "flight_controllers"
+]
+
+resolver =  "3"
