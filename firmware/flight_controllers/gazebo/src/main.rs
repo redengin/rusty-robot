@@ -2,6 +2,8 @@ use embassy_executor::Spawner;
 use embassy_time::Timer;
 use log::*;
 
+mod gazebo_imu;
+
 #[embassy_executor::task]
 async fn run() {
     loop {
