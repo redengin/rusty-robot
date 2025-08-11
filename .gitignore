@@ -1,2 +1,4 @@
 # ignore rust builds
 /**/target/
+
+test
