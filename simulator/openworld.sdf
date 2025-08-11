@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<sdf version="1.9">
+    <world name="openworld">
+
+        <!-- betaflight max control loop rate 8kHz -->
+        <physics name="8KHz" type="ignored">
+            <max_step_size>0.000125</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+        </physics>
+
+        <!-- boilerplate plugins -->
+        <plugin
+            filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands" />
+        <plugin
+            filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster" />
+        <plugin
+            filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics" />
+
+        <!-- ground plane -->
+        <model name="ground_plane">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>200 200</size>
+                        </plane>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>200 200</size>
+                        </plane>
+                    </geometry>
+                    <material>
+                        <ambient>0.4 0.4 0.8 0.5</ambient>
+                        <diffuse>0.4 0.4 0.8 0.5</diffuse>
+                        <specular>0.4 0.4 0.8 0.5</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+
+        <!-- drone sensors -->
+        <plugin filename="gz-sim-imu-system"
+            name="gz::sim::systems::Imu">
+        </plugin>
+        <plugin filename="gz-sim-navsat-system"
+            name="gz::sim::systems::NavSat">
+        </plugin>
+
+        <!-- drone instance -->
+        <include>
+            <name>drone-A</name>
+            <uri>https://fuel.gazebosim.org/1.0/flow/models/Skybot 04</uri>
+        </include>
+
+    </world>
+</sdf>
