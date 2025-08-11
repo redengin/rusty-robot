@@ -1,1 +1,2 @@
-/linkedin
+# ignore rust builds
+/**/target/
