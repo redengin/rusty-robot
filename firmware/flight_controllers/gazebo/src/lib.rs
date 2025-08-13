@@ -87,16 +87,15 @@ impl GazeboDrone {
 impl ImuReader for GazeboDrone {
     /// Returns the most recent sensor data.
     fn get_data(&self) -> Result<ImuData, ImuError> {
-        // FIXME
-        // Ok(self.data.read().map(|data| *data)?)
-        Ok(ImuData {
-            ..Default::default()
-        })
+        match self.imu_data {
+            None => return Err(ImuError::ReadError("no data".to_string())),
+            Some(data) => Ok(data)
+        }
     }
 
     /// Stops the reading thread.
     fn stop(&self) -> Result<(), ImuError> {
-        // not necessary for sim
+        // not implementable for sim
         Ok(())
     }
 }
