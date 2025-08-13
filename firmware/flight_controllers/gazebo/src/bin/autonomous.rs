@@ -5,7 +5,7 @@ use log::*;
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 
-// use rusty_robot_gazebo::{GazeboDrone};
+use rusty_robot_gazebo::{GazeboDrone};
 // use rusty_robot_drivers::imu_traits;
 
 // #[embassy_executor::task]
@@ -27,12 +27,11 @@ async fn main(spawner: Spawner) {
 
     // Collect command-line arguments
     let args: Vec<String> = env::args().collect();
-    let robot_name = &args[1];
+    let robot_name = &args[2];
+    let drone = GazeboDrone::new(robot_name);
 
-    // let drone = GazeboDrone::new(&args[2]);
+    // TODO spawn the control threads
 
-    // TEST USE ONLY
-    // let imu_data = drone.get_data();
-
-    // spawner.spawn(run()).unwrap();
+    // operate the drone
+    drone.run();
 }

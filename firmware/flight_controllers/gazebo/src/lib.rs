@@ -1,33 +1,50 @@
-use rusty_robot_drivers::imu_traits::{ImuReader, ImuData, ImuError};
-
+use embassy_time::Timer;
 use gz as gazebosim;
+use log::*;
+use rusty_robot_drivers::imu_traits::{ImuData, ImuError, ImuReader};
 
 pub struct GazeboDrone {
-    node : gazebosim::transport::Node,
+    node: gazebosim::transport::Node,
+    imu_topic: String,
+    navsat_topic: String,
 }
 
 impl GazeboDrone {
-    pub fn new(robot_name: &String) -> Self
-    {
-        // connect to gazebo
-        let mut node= gazebosim::transport::Node::new().unwrap();
-
-        // subscribe to drone sensors
-        let imu_topic = format!("/world/openworld/model/{}/link/base_link/sensor/imu_sensor/imu", robot_name);
-        assert!(node.subscribe(&imu_topic, GazeboDrone::imu_update));
-        let navsat_topic = format!("/world/openworld/model/{}/link/base_link/sensor/navsat_sensor/navsat", robot_name);
-        assert!(node.subscribe(&navsat_topic, GazeboDrone::imu_update));
-
+    pub fn new(robot_name: &String) -> Self {
         GazeboDrone {
-            node: node,
+            node: gazebosim::transport::Node::new().unwrap(),
+            imu_topic: format!(
+                "/world/openworld/model/{}/link/base_link/sensor/imu_sensor/imu",
+                robot_name
+            ),
+            navsat_topic: format!(
+                "/world/openworld/model/{}/link/base_link/sensor/navsat_sensor/navsat",
+                robot_name
+            ),
         }
     }
 
-    fn imu_update(msg: gz::msgs::imu::IMU) {
-        // TODO parse message for get_data()
-    }
-    fn navsat_update(msg: gz::msgs::imu::IMU) {
-        // TODO parse message for get_data()
+    pub async fn run(&mut self) {
+        // process IMU data via inline callback
+        assert!(
+            self.node
+                .subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
+                    // TODO parse the data into get_data response
+                    
+                })
+        );
+        // process navsat data via inline callback
+        assert!(self.node.subscribe(
+            self.navsat_topic.as_str(),
+            |msg: gz::msgs::navsat::NavSat| {
+                // TODO parse the data into ??? response
+            }
+        ));
+
+        // sit and spin
+        loop {
+            Timer::after_secs(1).await;
+        }
     }
 }
 
@@ -36,7 +53,9 @@ impl ImuReader for GazeboDrone {
     fn get_data(&self) -> Result<ImuData, ImuError> {
         // FIXME
         // Ok(self.data.read().map(|data| *data)?)
-        Ok(ImuData{..Default::default()})
+        Ok(ImuData {
+            ..Default::default()
+        })
     }
 
     /// Stops the reading thread.
