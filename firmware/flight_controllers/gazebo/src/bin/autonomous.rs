@@ -28,7 +28,7 @@ async fn main(spawner: Spawner) {
     // Collect command-line arguments
     let args: Vec<String> = env::args().collect();
     let robot_name = &args[2];
-    let drone = GazeboDrone::new(robot_name);
+    let mut drone = GazeboDrone::new(robot_name);
 
     // TODO spawn the control threads
 

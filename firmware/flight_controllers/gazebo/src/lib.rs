@@ -1,11 +1,12 @@
 use embassy_time::Timer;
-use gz as gazebosim;
+use gz::{self as gazebosim, msgs::quaternion::Quaternion};
 use log::*;
-use rusty_robot_drivers::imu_traits::{ImuData, ImuError, ImuReader};
+use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
 
 pub struct GazeboDrone {
     node: gazebosim::transport::Node,
     imu_topic: String,
+    imu_data: Option<imu_traits::ImuData>,
     navsat_topic: String,
 }
 
@@ -17,6 +18,7 @@ impl GazeboDrone {
                 "/world/openworld/model/{}/link/base_link/sensor/imu_sensor/imu",
                 robot_name
             ),
+            imu_data: None,
             navsat_topic: format!(
                 "/world/openworld/model/{}/link/base_link/sensor/navsat_sensor/navsat",
                 robot_name
@@ -24,13 +26,47 @@ impl GazeboDrone {
         }
     }
 
-    pub async fn run(&mut self) {
+    pub async fn run(&'static mut self) {
         // process IMU data via inline callback
         assert!(
             self.node
                 .subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
-                    // TODO parse the data into get_data response
-                    
+                    let mut imu_data = ImuData {
+                        ..Default::default()
+                    };
+
+                    // accelerometer
+                    if msg.linear_acceleration.is_some() {
+                        let gz_linear_acceleration = msg.linear_acceleration.unwrap();
+                        imu_data.accelerometer = Some(imu_traits::Vector3 {
+                            x: gz_linear_acceleration.x as f32,
+                            y: gz_linear_acceleration.y as f32,
+                            z: gz_linear_acceleration.z as f32,
+                        });
+                    }
+
+                    // gyroscope
+                    if msg.angular_velocity.is_some() {
+                        let gz_angular_velocity = msg.angular_velocity.unwrap();
+                        imu_data.gyroscope = Some(imu_traits::Vector3 {
+                            x : gz_angular_velocity.x as f32,
+                            y : gz_angular_velocity.y as f32,
+                            z : gz_angular_velocity.z as f32,
+                        });
+                    }
+
+                    // orientation
+                    if msg.orientation.is_some() {
+                        let gz_quaternion = msg.orientation.unwrap();
+                        imu_data.quaternion = Some(imu_traits::Quaternion {
+                            w: gz_quaternion.w as f32,
+                            x: gz_quaternion.x as f32,
+                            y: gz_quaternion.y as f32,
+                            z: gz_quaternion.z as f32,
+                        });
+                    }
+
+                    self.imu_data = Some(imu_data);
                 })
         );
         // process navsat data via inline callback
