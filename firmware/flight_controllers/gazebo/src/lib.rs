@@ -1,28 +1,33 @@
 use embassy_time::Timer;
-use gz::{self as gazebosim, msgs::quaternion::Quaternion};
-use log::*;
+use gz::{self as gazebosim};
 use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
+use rusty_robot_drivers::nmea_parser;
+use rusty_robot_drivers::nmea_parser::gnss::{self, GnsData};
 
 pub struct GazeboDrone {
     node: gazebosim::transport::Node,
     imu_topic: String,
     imu_data: Option<imu_traits::ImuData>,
     navsat_topic: String,
+    navsat_data: Option<GnsData>,
 }
 
 impl GazeboDrone {
     pub fn new(robot_name: &String) -> Self {
         GazeboDrone {
             node: gazebosim::transport::Node::new().unwrap(),
+
             imu_topic: format!(
                 "/world/openworld/model/{}/link/base_link/sensor/imu_sensor/imu",
                 robot_name
             ),
             imu_data: None,
+
             navsat_topic: format!(
                 "/world/openworld/model/{}/link/base_link/sensor/navsat_sensor/navsat",
                 robot_name
             ),
+            navsat_data: None,
         }
     }
 
@@ -49,9 +54,9 @@ impl GazeboDrone {
                     if msg.angular_velocity.is_some() {
                         let gz_angular_velocity = msg.angular_velocity.unwrap();
                         imu_data.gyroscope = Some(imu_traits::Vector3 {
-                            x : gz_angular_velocity.x as f32,
-                            y : gz_angular_velocity.y as f32,
-                            z : gz_angular_velocity.z as f32,
+                            x: gz_angular_velocity.x as f32,
+                            y: gz_angular_velocity.y as f32,
+                            z: gz_angular_velocity.z as f32,
                         });
                     }
 
@@ -70,12 +75,19 @@ impl GazeboDrone {
                 })
         );
         // process navsat data via inline callback
-        assert!(self.node.subscribe(
-            self.navsat_topic.as_str(),
-            |msg: gz::msgs::navsat::NavSat| {
-                // TODO parse the data into ??? response
-            }
-        ));
+        // assert!(self.node.subscribe(
+        //     self.navsat_topic.as_str(),
+        //     |msg: gz::msgs::navsat::NavSat| {
+        //         let mut navsat_data = GnsData {
+        //             source: gnss::NavigationSystem::Other,
+        //             timestamp: None,
+        //             latitude: None,
+        //             longitude: None,
+        //             gps_mode: nmea_parser::gnss::gns::GnsModeIndicator::SimulationMode,
+
+        //         };
+        //     }
+        // ));
 
         // sit and spin
         loop {
@@ -89,7 +101,7 @@ impl ImuReader for GazeboDrone {
     fn get_data(&self) -> Result<ImuData, ImuError> {
         match self.imu_data {
             None => return Err(ImuError::ReadError("no data".to_string())),
-            Some(data) => Ok(data)
+            Some(data) => Ok(data),
         }
     }
 

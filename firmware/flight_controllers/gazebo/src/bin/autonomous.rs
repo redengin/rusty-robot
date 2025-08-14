@@ -6,17 +6,15 @@ use embassy_executor::Spawner;
 use embassy_time::Timer;
 
 use rusty_robot_gazebo::{GazeboDrone};
-// use rusty_robot_drivers::imu_traits;
-
-// #[embassy_executor::task]
-// async fn run() {
-//     loop {
-//         info!("tick");
-
-
-//         Timer::after_secs(1).await;
-//     }
-// }
+// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
+macro_rules! mk_static {
+    ($t:ty,$val:expr) => {{
+        static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
+        #[deny(unused_attributes)]
+        let x = STATIC_CELL.uninit().write(($val));
+        x
+    }};
+}
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -28,10 +26,26 @@ async fn main(spawner: Spawner) {
     // Collect command-line arguments
     let args: Vec<String> = env::args().collect();
     let robot_name = &args[2];
-    let mut drone = GazeboDrone::new(robot_name);
+    // let mut drone = GazeboDrone::new(robot_name);
+    let drone= &mut *mk_static!(
+        GazeboDrone,
+        GazeboDrone::new(robot_name)
+    );
 
     // TODO spawn the control threads
 
     // operate the drone
-    drone.run();
+    drone.run().await
 }
+
+// use rusty_robot_drivers::imu_traits;
+
+// #[embassy_executor::task]
+// async fn run() {
+//     loop {
+//         info!("tick");
+
+
+//         Timer::after_secs(1).await;
+//     }
+// }

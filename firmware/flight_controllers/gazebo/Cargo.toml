@@ -6,6 +6,12 @@ edition = "2024"
 
 
 [dependencies]
+# common dependencies
+log = "*"
+env_logger = "*"
+static_cell = "*"
+
+# use of embassy
 # FIXME - embassy is unable to use separate crates for embassy-executor & embassy-time
 #   so we aren't able to gather cargo by version number
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
@@ -18,13 +24,10 @@ embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "log",
 ] }
 
-log = "*"
-env_logger = "*"
-
 # gazebo sim support
 gz = { version = "*", features=["harmonic"] }
 
-# driver traits
+# shared driver traits
 rusty-robot-drivers = { path = "../../drivers" }
 
 
