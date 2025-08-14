@@ -6,6 +6,8 @@ use embassy_executor::Spawner;
 use embassy_time::Timer;
 
 use rusty_robot_gazebo::{GazeboDrone};
+
+// support a dynamically constructed static object
 // When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
@@ -23,10 +25,13 @@ async fn main(spawner: Spawner) {
         .format_timestamp_millis()
         .init();
 
-    // Collect command-line arguments
+    // collect command-line arguments
     let args: Vec<String> = env::args().collect();
-    let robot_name = &args[2];
-    // let mut drone = GazeboDrone::new(robot_name);
+    if args.len() < 2 { panic!("drone name must be the first argument ({} <drone_name>)", args[0])};
+    let robot_name = &args[1];
+    info!("{} under autonomous control", robot_name);
+
+    // create the drone as a static instance
     let drone= &mut *mk_static!(
         GazeboDrone,
         GazeboDrone::new(robot_name)

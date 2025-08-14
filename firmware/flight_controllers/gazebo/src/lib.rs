@@ -1,15 +1,14 @@
 use embassy_time::Timer;
 use gz::{self as gazebosim};
 use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
-use rusty_robot_drivers::nmea_parser;
-use rusty_robot_drivers::nmea_parser::gnss::{self, GnsData};
+use rusty_robot_drivers::nmea_parser::gnss;
 
 pub struct GazeboDrone {
     node: gazebosim::transport::Node,
     imu_topic: String,
     imu_data: Option<imu_traits::ImuData>,
     navsat_topic: String,
-    navsat_data: Option<GnsData>,
+    navsat_data: Option<gnss::GgaData>,
 }
 
 impl GazeboDrone {
@@ -32,10 +31,14 @@ impl GazeboDrone {
     }
 
     pub async fn run(&'static mut self) {
+        use log::*;
+
         // process IMU data via inline callback
         assert!(
             self.node
                 .subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
+                    debug!("imu msg {}", msg);
+
                     let mut imu_data = ImuData {
                         ..Default::default()
                     };
@@ -74,23 +77,30 @@ impl GazeboDrone {
                     self.imu_data = Some(imu_data);
                 })
         );
-        // process navsat data via inline callback
-        // assert!(self.node.subscribe(
-        //     self.navsat_topic.as_str(),
-        //     |msg: gz::msgs::navsat::NavSat| {
-        //         let mut navsat_data = GnsData {
-        //             source: gnss::NavigationSystem::Other,
-        //             timestamp: None,
-        //             latitude: None,
-        //             longitude: None,
-        //             gps_mode: nmea_parser::gnss::gns::GnsModeIndicator::SimulationMode,
 
-        //         };
-        //     }
-        // ));
+        // process navsat data via inline callback
+        assert!(self.node.subscribe(
+            self.navsat_topic.as_str(),
+            |msg: gz::msgs::navsat::NavSat| {
+                self.navsat_data = Some(gnss::GgaData {
+                    source: gnss::NavigationSystem::Other,
+                    timestamp: None,
+                    latitude: Some(msg.latitude_deg),
+                    longitude: Some(msg.longitude_deg),
+                    quality: gnss::GgaQualityIndicator::SimulationMode,
+                    satellite_count: None,
+                    hdop: None,
+                    altitude: Some(msg.altitude),
+                    geoid_separation: None,
+                    age_of_dgps: None,
+                    ref_station_id: None,
+                });
+            }
+        ));
 
         // sit and spin
         loop {
+            trace!("new cycle");
             Timer::after_secs(1).await;
         }
     }
