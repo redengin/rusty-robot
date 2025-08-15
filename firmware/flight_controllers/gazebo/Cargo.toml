@@ -25,7 +25,7 @@ embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
 ] }
 
 # gazebo sim support
-gz = { version = "*", features=["harmonic"] }
+gz = { version = "*", features = ["harmonic"] }
 
 # shared driver traits
 rusty-robot-drivers = { path = "../../drivers" }

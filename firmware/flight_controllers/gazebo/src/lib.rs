@@ -34,6 +34,7 @@ impl GazeboDrone {
         use log::*;
 
         // process IMU data via inline callback
+        debug!("subscribing to IMU '{}'", self.imu_topic);
         assert!(
             self.node
                 .subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
@@ -79,9 +80,12 @@ impl GazeboDrone {
         );
 
         // process navsat data via inline callback
+        debug!("subscribing to GPS '{}'", self.gps_topic);
         assert!(
             self.node
                 .subscribe(self.gps_topic.as_str(), |msg: gz::msgs::navsat::NavSat| {
+                    debug!("gps msg {}", msg);
+
                     self.gps_data = GpsState {
                         latitude: Some(msg.latitude_deg),
                         longitude: Some(msg.longitude_deg),

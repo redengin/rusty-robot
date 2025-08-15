@@ -21,7 +21,6 @@ macro_rules! mk_static {
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     env_logger::builder()
-        .filter_level(log::LevelFilter::Debug)
         .format_timestamp_millis()
         .init();
 
