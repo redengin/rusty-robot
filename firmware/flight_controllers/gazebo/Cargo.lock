@@ -184,7 +184,7 @@ dependencies = [
 [[package]]
 name = "embassy-executor"
 version = "0.8.0"
-source = "git+https://github.com/embassy-rs/embassy.git#1f19430f2ebda4d686057a854f6b74b8643cd56b"
+source = "git+https://github.com/embassy-rs/embassy.git#26a8aa9566ec7d2e79f933e577caf23ead20b53f"
 dependencies = [
  "critical-section",
  "document-features",
@@ -195,7 +195,7 @@ dependencies = [
 [[package]]
 name = "embassy-executor-macros"
 version = "0.7.0"
-source = "git+https://github.com/embassy-rs/embassy.git#1f19430f2ebda4d686057a854f6b74b8643cd56b"
+source = "git+https://github.com/embassy-rs/embassy.git#26a8aa9566ec7d2e79f933e577caf23ead20b53f"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -206,7 +206,7 @@ dependencies = [
 [[package]]
 name = "embassy-time"
 version = "0.4.0"
-source = "git+https://github.com/embassy-rs/embassy.git#1f19430f2ebda4d686057a854f6b74b8643cd56b"
+source = "git+https://github.com/embassy-rs/embassy.git#26a8aa9566ec7d2e79f933e577caf23ead20b53f"
 dependencies = [
  "cfg-if",
  "critical-section",
@@ -223,7 +223,7 @@ dependencies = [
 [[package]]
 name = "embassy-time-driver"
 version = "0.2.0"
-source = "git+https://github.com/embassy-rs/embassy.git#1f19430f2ebda4d686057a854f6b74b8643cd56b"
+source = "git+https://github.com/embassy-rs/embassy.git#26a8aa9566ec7d2e79f933e577caf23ead20b53f"
 dependencies = [
  "document-features",
 ]
@@ -231,7 +231,7 @@ dependencies = [
 [[package]]
 name = "embassy-time-queue-utils"
 version = "0.2.0"
-source = "git+https://github.com/embassy-rs/embassy.git#1f19430f2ebda4d686057a854f6b74b8643cd56b"
+source = "git+https://github.com/embassy-rs/embassy.git#26a8aa9566ec7d2e79f933e577caf23ead20b53f"
 dependencies = [
  "embassy-executor",
  "heapless",

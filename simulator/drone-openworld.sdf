@@ -59,7 +59,7 @@
 
         <!-- drone instance -->
         <include>
-            <name>drone-A</name>
+            <name>drone</name>
             <uri>https://fuel.gazebosim.org/1.0/flow/models/Skybot 04</uri>
         </include>
 

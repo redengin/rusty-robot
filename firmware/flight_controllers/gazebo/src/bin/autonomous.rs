@@ -1,11 +1,9 @@
 //! Autonomous Drone (maneuvers to points in space)
 use std::env;
-
 use log::*;
-use embassy_executor::Spawner;
-use embassy_time::Timer;
 
 use rusty_robot_gazebo::{GazeboDrone};
+use embassy_executor::Spawner;
 
 // support a dynamically constructed static object
 // When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
@@ -19,7 +17,7 @@ macro_rules! mk_static {
 }
 
 #[embassy_executor::main]
-async fn main(spawner: Spawner) {
+async fn main(_spawner: Spawner) {
     env_logger::builder()
         .format_timestamp_millis()
         .init();
@@ -41,15 +39,3 @@ async fn main(spawner: Spawner) {
     // operate the drone
     drone.run().await
 }
-
-// use rusty_robot_drivers::imu_traits;
-
-// #[embassy_executor::task]
-// async fn run() {
-//     loop {
-//         info!("tick");
-
-
-//         Timer::after_secs(1).await;
-//     }
-// }

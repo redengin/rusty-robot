@@ -1,7 +1,7 @@
-use embassy_time::Timer;
 use gz::{self as gazebosim};
 use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
 use rusty_robot_drivers::gps::{Gps, GpsState};
+use embassy_time::Timer;
 
 pub struct GazeboDrone {
     node: gazebosim::transport::Node,
@@ -31,14 +31,12 @@ impl GazeboDrone {
     }
 
     pub async fn run(&'static mut self) {
-        use log::*;
-
         // process IMU data via inline callback
-        debug!("subscribing to IMU '{}'", self.imu_topic);
+        log::debug!("subscribing to IMU '{}'", self.imu_topic);
         assert!(
             self.node
                 .subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
-                    debug!("imu msg {}", msg);
+                    log::trace!("imu msg {}", msg.entity_name);
 
                     let mut imu_data = ImuData {
                         ..Default::default()
@@ -80,11 +78,11 @@ impl GazeboDrone {
         );
 
         // process navsat data via inline callback
-        debug!("subscribing to GPS '{}'", self.gps_topic);
+        log::debug!("subscribing to GPS '{}'", self.gps_topic);
         assert!(
             self.node
                 .subscribe(self.gps_topic.as_str(), |msg: gz::msgs::navsat::NavSat| {
-                    debug!("gps msg {}", msg);
+                    log::trace!("gps msg {}", msg.frame_id);
 
                     self.gps_data = GpsState {
                         latitude: Some(msg.latitude_deg),
@@ -99,8 +97,8 @@ impl GazeboDrone {
 
         // sit and spin
         loop {
-            trace!("new cycle");
             Timer::after_secs(1).await;
+            log::trace!("running...");
         }
     }
 }
