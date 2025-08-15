@@ -1,14 +1,14 @@
 use embassy_time::Timer;
 use gz::{self as gazebosim};
 use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
-use rusty_robot_drivers::nmea_parser::gnss;
+use rusty_robot_drivers::gps::{Gps, GpsState};
 
 pub struct GazeboDrone {
     node: gazebosim::transport::Node,
     imu_topic: String,
     imu_data: Option<imu_traits::ImuData>,
-    navsat_topic: String,
-    navsat_data: Option<gnss::GgaData>,
+    gps_topic: String,
+    gps_data: GpsState,
 }
 
 impl GazeboDrone {
@@ -22,11 +22,11 @@ impl GazeboDrone {
             ),
             imu_data: None,
 
-            navsat_topic: format!(
+            gps_topic: format!(
                 "/world/openworld/model/{}/link/base_link/sensor/navsat_sensor/navsat",
                 robot_name
             ),
-            navsat_data: None,
+            gps_data: Default::default(),
         }
     }
 
@@ -79,24 +79,19 @@ impl GazeboDrone {
         );
 
         // process navsat data via inline callback
-        assert!(self.node.subscribe(
-            self.navsat_topic.as_str(),
-            |msg: gz::msgs::navsat::NavSat| {
-                self.navsat_data = Some(gnss::GgaData {
-                    source: gnss::NavigationSystem::Other,
-                    timestamp: None,
-                    latitude: Some(msg.latitude_deg),
-                    longitude: Some(msg.longitude_deg),
-                    quality: gnss::GgaQualityIndicator::SimulationMode,
-                    satellite_count: None,
-                    hdop: None,
-                    altitude: Some(msg.altitude),
-                    geoid_separation: None,
-                    age_of_dgps: None,
-                    ref_station_id: None,
-                });
-            }
-        ));
+        assert!(
+            self.node
+                .subscribe(self.gps_topic.as_str(), |msg: gz::msgs::navsat::NavSat| {
+                    self.gps_data = GpsState {
+                        latitude: Some(msg.latitude_deg),
+                        longitude: Some(msg.longitude_deg),
+                        altitude: Some(msg.altitude),
+                        satellite_count: None,
+                        // TODO parse the msg.header.stamp (timestamp) to set the timestamp
+                        timestamp: None,
+                    }
+                })
+        );
 
         // sit and spin
         loop {
@@ -119,5 +114,11 @@ impl ImuReader for GazeboDrone {
     fn stop(&self) -> Result<(), ImuError> {
         // not implementable for sim
         Ok(())
+    }
+}
+
+impl Gps for GazeboDrone {
+    fn get_data(&self) -> GpsState {
+        self.gps_data.clone()
     }
 }
