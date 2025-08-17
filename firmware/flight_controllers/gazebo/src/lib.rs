@@ -6,6 +6,7 @@ use rusty_robot_drivers::systems;
 use std::f64::consts::PI;
 
 /// max RPM of motors
+// note the skybot caps motor velocity at 1000 radians/s
 const MAX_MOTOR_RPM: f64 = 40_000.0;
 
 pub struct GazeboDrone {
