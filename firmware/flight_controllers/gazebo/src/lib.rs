@@ -1,14 +1,24 @@
-use gz::{self as gazebosim};
-use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
-use rusty_robot_drivers::gps::{Gps, GpsState};
 use embassy_time::Timer;
+use gz::{self as gazebosim};
+use rusty_robot_drivers::gps::{Gps, GpsState};
+use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
+use rusty_robot_drivers::systems;
+use std::f64::consts::PI;
+
+/// max RPM of motors
+const MAX_MOTOR_RPM: f64 = 40_000.0;
 
 pub struct GazeboDrone {
     node: gazebosim::transport::Node,
+
     imu_topic: String,
     imu_data: Option<imu_traits::ImuData>,
+
     gps_topic: String,
     gps_data: GpsState,
+
+    motors_topic: String,
+    motor_publisher: Option<gazebosim::transport::Publisher<gazebosim::msgs::actuators::Actuators>>,
 }
 
 impl GazeboDrone {
@@ -27,6 +37,9 @@ impl GazeboDrone {
                 robot_name
             ),
             gps_data: Default::default(),
+
+            motors_topic: format!("/{}/command/motor_speed", robot_name),
+            motor_publisher: None,
         }
     }
 
@@ -95,6 +108,13 @@ impl GazeboDrone {
                 })
         );
 
+        // provide the motors topic
+        self.motor_publisher = Some(
+            self.node
+                .advertise::<gazebosim::msgs::actuators::Actuators>(&self.motors_topic)
+                .unwrap(),
+        );
+
         // sit and spin
         loop {
             Timer::after_secs(1).await;
@@ -123,4 +143,33 @@ impl Gps for GazeboDrone {
     fn get_data(&self) -> GpsState {
         self.gps_data.clone()
     }
+}
+
+impl systems::QuadCopterMotors for GazeboDrone {
+    fn set_data(&mut self, velocities: [u8; 4]) {
+        match &mut self.motor_publisher {
+            Some(publisher) => {
+                let mut msg = gazebosim::msgs::actuators::Actuators::new();
+                msg.velocity = vec![
+                    rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[0] as f64)),
+                    rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[1] as f64)),
+                    rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[2] as f64)),
+                    rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[3] as f64)),
+                ];
+
+                if publisher.publish(&msg) {
+                    log::trace!("sent motor update {:?}", msg.velocity);
+                } else {
+                    log::warn!("failed to send motor update");
+                }
+            }
+            None => {
+                log::warn!("motor publisher not active, ignoring motor update");
+            }
+        }
+    }
+}
+
+fn rpm_to_radians_per_second(rpm: f64) -> f64 {
+    2.0 * PI * rpm * 60.0
 }
