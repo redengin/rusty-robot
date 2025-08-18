@@ -119,7 +119,7 @@ impl GazeboDrone {
         // sit and spin
         loop {
             Timer::after_secs(1).await;
-            log::trace!("running...");
+            log::trace!("listening for sensor topic messages...");
         }
     }
 }

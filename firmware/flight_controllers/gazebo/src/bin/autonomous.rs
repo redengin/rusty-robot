@@ -17,7 +17,7 @@ macro_rules! mk_static {
 }
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     env_logger::builder()
         .format_timestamp_millis()
         .init();
@@ -34,8 +34,27 @@ async fn main(_spawner: Spawner) {
         GazeboDrone::new(robot_name)
     );
 
-    // TODO spawn the control threads
+    // spawn the control threads
+    spawner.spawn(flight_controller(drone)).unwrap();
 
     // operate the drone
-    drone.run().await
+    // drone.run().await
+}
+
+#[embassy_executor::task]
+async fn flight_controller(robot: &'static mut GazeboDrone)
+{
+    const CYCLE_RATE_HZ: u64 = 8000;
+    let cycle_duration = embassy_time::Duration::from_hz(CYCLE_RATE_HZ);
+
+    let mut cycle_count:u64 = 0;
+    loop {
+        log::info!("starting cycle {}", cycle_count);
+        cycle_count += 1;
+        let start_tick = embassy_time::Instant::now();
+
+        // TODO flight controller step
+
+        embassy_time::Timer::at(start_tick.saturating_add(cycle_duration)).await
+    }
 }

@@ -1,0 +1,10 @@
+[package]
+name = "rusty-robot-flight-controllers"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2024"
+
+[dependencies]
+# shared driver traits
+rusty-robot-drivers = { path = "../drivers" }
+

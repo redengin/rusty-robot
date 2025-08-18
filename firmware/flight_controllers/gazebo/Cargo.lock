@@ -628,6 +628,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rusty-robot-flight-controllers"
+version = "0.1.0"
+dependencies = [
+ "rusty-robot-drivers",
+]
+
+[[package]]
 name = "rusty-robot-gazebo"
 version = "0.1.0"
 dependencies = [
@@ -637,6 +644,7 @@ dependencies = [
  "gz",
  "log",
  "rusty-robot-drivers",
+ "rusty-robot-flight-controllers",
  "static_cell",
 ]
 
