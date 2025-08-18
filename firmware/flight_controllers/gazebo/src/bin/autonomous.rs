@@ -37,7 +37,7 @@ async fn main(spawner: Spawner) {
     // spawn the control threads
     spawner.spawn(flight_controller(drone)).unwrap();
 
-    // operate the drone
+    // FIXME operate the drone
     // drone.run().await
 }
 
@@ -51,10 +51,15 @@ async fn flight_controller(robot: &'static mut GazeboDrone)
     loop {
         log::info!("starting cycle {}", cycle_count);
         cycle_count += 1;
-        let start_tick = embassy_time::Instant::now();
+        let start_instant = embassy_time::Instant::now();
+        let next_start_instant= start_instant.saturating_add(cycle_duration);
 
         // TODO flight controller step
 
-        embassy_time::Timer::at(start_tick.saturating_add(cycle_duration)).await
+        if embassy_time::Instant::now() > next_start_instant
+        {
+            log::warn!("cycle {} exceeded duration {} Hz", cycle_count, CYCLE_RATE_HZ);
+        }
+        embassy_time::Timer::at(next_start_instant).await
     }
 }
