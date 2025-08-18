@@ -19,6 +19,10 @@ embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features
     "executor-thread",
     "log",
 ] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = [
+    "std",
+] }
+critical-section = { version = "*", features = ["std"] }
 embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "std",
     "log",

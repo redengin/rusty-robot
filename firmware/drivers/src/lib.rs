@@ -5,7 +5,7 @@ pub use imu_traits;
 pub use nmea_parser;
 
 // provide basic GPS API
-pub mod gps {
+pub mod gps_traits {
     #[derive(Default, Clone, Debug)]
     pub struct GpsState {
         pub latitude: Option<f64>,
@@ -17,7 +17,7 @@ pub mod gps {
 
     pub trait Gps {
         // provide the latest GPS State
-        fn get_data(&self) -> GpsState;
+        fn get_data(&self) -> Result<GpsState, &str>;
     }
 }
 
