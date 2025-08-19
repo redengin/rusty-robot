@@ -7,15 +7,15 @@ capacity.
 
 <!-- links to chat channels -->
 
-
 Step 1 - Explain your concept
 --------------------------------------------------------------------------------
-Create a simple document that explains:
-* What does this robot do?
-    * a paragraph to describe your need
-* Why does this robot improve your life?
-    * a paragraph to describe *how* it impacts you
-    * a paragraph to describe *where* it will be used
+Create a simple document that explains why this robot should exist:
+* a paragraph (or sometimes more) for each;
+    * *why* - what need does this robot serve?
+    * *where* - what environments does this robot need to operate in?
+    * *how* - what operations does this robot perform?
+        * what does the robot need to sense about the world?
+        * what does the robot need to "do" to the world?
 
 From this short description, you can reach out to the community to identify if
 there are others working on a similar concept.
@@ -23,31 +23,16 @@ there are others working on a similar concept.
 Step 2 - Model your robot
 --------------------------------------------------------------------------------
 To realize your robot, the system needs to be physically possible.
-[Modeling](../best-practices/modeling.md) allows you to describe the physical
+[Modeling](../best_practices/modeling.md) allows you to describe the physical
 needs and then leverage automated analysis to determine if system can meet those
 needs.
 
 The community is happy to help you (provide the following information)
 * simple diagram of what the robot looks like
-    * explanation of what movements are required
+    * be able (or learn how) to provide physical data about your robot
 
-Step 3 (optional) - Mechanical Testing
---------------------------------------------------------------------------------
-Put the mechanical apparatus through it's manuevers to validate capability.
-
-
-Step 4 - Implementation
---------------------------------------------------------------------------------
-Choose digital components from the [supported list](/docs/componenents.md).
-
-<!-- TODO how to combine components -->
-
-
-Step 5 - System Test
---------------------------------------------------------------------------------
-* Leverage the self-test methods to ascertain if the hardware is working correctly
-    * repeat the task(s) until confident of repeatable performance
-
+With a well-defined **model** you can then simulate your robot using a physics
+engine (see [simulator](../../simulator/README.md)).
 
 
 
