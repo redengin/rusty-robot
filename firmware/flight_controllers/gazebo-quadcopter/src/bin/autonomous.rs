@@ -4,7 +4,7 @@ use rusty_robot_flight_controllers::autonomous;
 use std::env;
 
 use embassy_executor::Spawner;
-use rusty_robot_gazebo::GazeboDrone;
+use rusty_robot_gazebo_quadcopter::GazeboDrone;
 
 // support a dynamically constructed static object
 // When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
