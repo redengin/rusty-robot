@@ -49,7 +49,7 @@ impl GazeboDrone {
         log::debug!("subscribing to IMU '{}'", self.imu_topic);
         assert!(
             node.subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
-                log::trace!("imu msg {}", msg.entity_name);
+                log::trace!("imu msg {:?}", msg.entity_name);
 
                 let mut imu_data = ImuData {
                     ..Default::default()
@@ -94,16 +94,14 @@ impl GazeboDrone {
             node.subscribe(self.gps_topic.as_str(), |msg: gz::msgs::navsat::NavSat| {
                 log::trace!("gps msg {}", msg.frame_id);
 
-                let gps_data = GpsState {
+                self.gps_signal.signal(GpsState {
                     latitude: Some(msg.latitude_deg),
                     longitude: Some(msg.longitude_deg),
                     altitude: Some(msg.altitude),
                     satellite_count: None,
                     // TODO parse the msg.header.stamp (timestamp) to set the timestamp
                     timestamp: None,
-                };
-
-                self.gps_signal.signal(gps_data);
+                });
             })
         );
 
@@ -114,18 +112,17 @@ impl GazeboDrone {
         // handle publishing signals back to gazebosim
         loop {
             // awaits motor update
-            let velocities = self.motors_signal.wait().await;
+            let velocities_pct = self.motors_signal.wait().await;
             let mut msg = gazebosim::msgs::actuators::Actuators::new();
             msg.velocity = vec![
-                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[0] as f64)),
-                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[1] as f64)),
-                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[2] as f64)),
-                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[3] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities_pct[0] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities_pct[1] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities_pct[2] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities_pct[3] as f64)),
             ];
             if motors_publisher.publish(&msg) {
                 log::trace!("sent motor update {:?}", msg.velocity);
-            }
-            else {
+            } else {
                 log::warn!("failed to send motor update");
             }
         }
@@ -163,6 +160,6 @@ impl Gps for GazeboDrone {
 
 impl QuadCopterMotors for GazeboDrone {
     fn set_data(&mut self, velocities_pct: [u8; 4]) {
-        todo!()
+        self.motors_signal.signal(velocities_pct);
     }
 }
