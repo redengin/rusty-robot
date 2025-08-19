@@ -41,27 +41,23 @@ async fn main(spawner: Spawner) {
     spawner.spawn(flight_controller(drone)).unwrap();
 
     // operate the drone
-    drone.run()
+    drone.run().await
 }
 
 #[embassy_executor::task]
 async fn flight_controller(drone: &'static GazeboDrone) {
+
     const CYCLE_RATE_HZ: u64 = 8000;
     let cycle_duration = embassy_time::Duration::from_hz(CYCLE_RATE_HZ);
 
     let mut cycle_count: u64 = 0;
     loop {
-        log::info!("starting cycle {}", cycle_count);
+        // log::info!("starting cycle {}", cycle_count);
         cycle_count += 1;
         let start_instant = embassy_time::Instant::now();
         let next_start_instant = start_instant.saturating_add(cycle_duration);
 
         // TODO flight controller step
-        // TEST
-        {
-            let imu_data = drone.imu_signal.wait().await;
-            let gps_data = drone.gps_signal.wait().await;
-        }
 
         if embassy_time::Instant::now() > next_start_instant {
             log::warn!(

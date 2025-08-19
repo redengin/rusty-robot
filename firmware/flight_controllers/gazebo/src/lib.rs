@@ -1,17 +1,26 @@
 use gz::{self as gazebosim};
 
-use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
 use rusty_robot_drivers::gps_traits::{Gps, GpsState};
+use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
+use rusty_robot_drivers::systems::QuadCopterMotors;
+use std::f64::consts::PI;
 
 pub struct GazeboDrone {
     pub imu_topic: String,
-    pub imu_signal: Signal<CriticalSectionRawMutex, ImuData>,
+    imu_signal: Signal<CriticalSectionRawMutex, ImuData>,
 
     pub gps_topic: String,
-    pub gps_signal: Signal<CriticalSectionRawMutex, GpsState>,
+    gps_signal: Signal<CriticalSectionRawMutex, GpsState>,
+
+    pub motors_topic: String,
+    motors_signal: Signal<CriticalSectionRawMutex, [u8; 4]>,
 }
+
+/// max RPM of motors
+// note the skybot caps motor velocity at 1000 radians/s (aka 9550 RPM)
+const MAX_MOTOR_RPM: f64 = 10_000.0;
 
 impl GazeboDrone {
     pub fn new(robot_name: &String) -> Self {
@@ -27,10 +36,13 @@ impl GazeboDrone {
                 robot_name
             ),
             gps_signal: Signal::new(),
+
+            motors_topic: format!("/{}/command/motor_speed", robot_name),
+            motors_signal: Signal::new(),
         }
     }
 
-    pub fn run(&'static self) {
+    pub async fn run(&'static self) {
         let mut node = gazebosim::transport::Node::new().unwrap();
 
         // handle IMU updates
@@ -94,6 +106,33 @@ impl GazeboDrone {
                 self.gps_signal.signal(gps_data);
             })
         );
+
+        let mut motors_publisher = node
+            .advertise::<gazebosim::msgs::actuators::Actuators>(&self.motors_topic.as_str())
+            .unwrap();
+
+        // handle publishing signals back to gazebosim
+        loop {
+            // awaits motor update
+            let velocities = self.motors_signal.wait().await;
+            let mut msg = gazebosim::msgs::actuators::Actuators::new();
+            msg.velocity = vec![
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[0] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[1] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[2] as f64)),
+                Self::rpm_to_radians_per_second(MAX_MOTOR_RPM / 100.0 * (velocities[3] as f64)),
+            ];
+            if motors_publisher.publish(&msg) {
+                log::trace!("sent motor update {:?}", msg.velocity);
+            }
+            else {
+                log::warn!("failed to send motor update");
+            }
+        }
+    }
+
+    fn rpm_to_radians_per_second(rpm: f64) -> f64 {
+        rpm * (2.0 * PI / 60.0)
     }
 }
 
@@ -119,5 +158,11 @@ impl Gps for GazeboDrone {
             Some(data) => return Ok(data),
             None => return Err("no new gps data"),
         }
+    }
+}
+
+impl QuadCopterMotors for GazeboDrone {
+    fn set_data(&mut self, velocities_pct: [u8; 4]) {
+        todo!()
     }
 }
