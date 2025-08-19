@@ -1,15 +1,19 @@
 Rusty Robot Simulation
 ================================================================================
+Simulators allow the designer to test out their control algorithms in a
+simulated physical environment. By leveraging simulation, you can dramatically
+reduce the testing costs.
 
-Gazebo (https://gazebosim.org)
---------------------------------------------------------------------------------
-Suggested installation using snaps
-```sh
-# install gazebo
-snap install gazebo
-```
+Choosing a simulator
+================================================================================
+**Simulation is only valuable if it reduces costs.**
 
-Creating a Gazebo simulation
+Costs
 --------------------------------------------------------------------------------
-The tools here will allow you to easily create simulations that test your design
-under environmental conditions.
+* **effort** - how difficult is it for a novice to create the simulation?
+* **time** - how long does it take to create and maintain the models for simulation?
+
+Our simulator
+--------------------------------------------------------------------------------
+We are using [Gazebo](https://gazebosim.org).
+You can find out more in [gazebo/](gazebo/README.md).
