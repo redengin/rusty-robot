@@ -10,6 +10,9 @@ log = "*"
 # shared driver traits
 rusty-robot-drivers = { path = "../drivers" }
 
+# shared robot traits
+rusty-robot-robots = { path = "../robots/" }
+
 embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "std",
     "log",

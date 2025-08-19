@@ -34,8 +34,11 @@ gz = { version = "*", features = ["harmonic"] }
 # shared driver traits
 rusty-robot-drivers = { path = "../../drivers" }
 
+# shared robot traits
+rusty-robot-robots = { path = "../../robots/" }
+
 # flight control systems
-rusty-robot-flight-controllers = { path = "../" }
+rusty-robot-flight-controllers = { path = "../../flight_controllers" }
 
 
 [profile.release]

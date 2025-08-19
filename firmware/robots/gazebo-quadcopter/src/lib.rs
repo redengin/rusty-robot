@@ -4,7 +4,7 @@ use rusty_robot_drivers::gps_traits::{Gps, GpsState};
 use rusty_robot_drivers::imu_traits::{self, ImuData, ImuError, ImuReader};
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
-use rusty_robot_drivers::systems::QuadCopterMotors;
+use rusty_robot_robots::systems::QuadCopterMotors;
 use std::f64::consts::PI;
 
 pub struct GazeboDrone {

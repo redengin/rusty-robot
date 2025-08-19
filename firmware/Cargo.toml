@@ -3,6 +3,6 @@ resolver = "3"
 members = [
     "drivers",
     "flight_controllers",
-    "flight_controllers/gazebo-quadcopter",
+    "robots/gazebo-quadcopter",
 ]
 

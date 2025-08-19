@@ -8,8 +8,8 @@ pub mod autonomous {
     use rusty_robot_drivers::{
         gps_traits::{self, Gps},
         imu_traits::{self, ImuReader},
-        systems,
     };
+    use rusty_robot_robots::systems;
 
     pub async fn run<T>(drone: &T, cycle_rate_hz: u64)
     where

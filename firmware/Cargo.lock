@@ -753,6 +753,7 @@ dependencies = [
  "embassy-time",
  "log",
  "rusty-robot-drivers",
+ "rusty-robot-robots",
 ]
 
 [[package]]
@@ -768,8 +769,13 @@ dependencies = [
  "log",
  "rusty-robot-drivers",
  "rusty-robot-flight-controllers",
+ "rusty-robot-robots",
  "static_cell",
 ]
+
+[[package]]
+name = "rusty-robot-robots"
+version = "0.1.0"
 
 [[package]]
 name = "scopeguard"
