@@ -5,6 +5,12 @@ license = "Apache-2.0"
 edition = "2024"
 
 [dependencies]
+log = "*"
+
 # shared driver traits
 rusty-robot-drivers = { path = "../drivers" }
 
+embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
+    "std",
+    "log",
+] }

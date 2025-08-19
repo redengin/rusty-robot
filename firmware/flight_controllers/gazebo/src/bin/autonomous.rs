@@ -1,5 +1,6 @@
 //! Autonomous Drone (maneuvers to points in space)
 use log::*;
+use rusty_robot_flight_controllers::autonomous;
 use std::env;
 
 use embassy_executor::Spawner;
@@ -34,10 +35,7 @@ async fn main(spawner: Spawner) {
     // create the drone as a static instance
     let drone = &mut *mk_static!(GazeboDrone, GazeboDrone::new(robot_name));
 
-    // spawn the control threads
-    // spawner.spawn(flight_controller(
-    //     // &drone.sensors, &drone.actuators
-    // )).unwrap();
+    // spawn the flight controller control
     spawner.spawn(flight_controller(drone)).unwrap();
 
     // operate the drone
@@ -46,26 +44,6 @@ async fn main(spawner: Spawner) {
 
 #[embassy_executor::task]
 async fn flight_controller(drone: &'static GazeboDrone) {
-
     const CYCLE_RATE_HZ: u64 = 8000;
-    let cycle_duration = embassy_time::Duration::from_hz(CYCLE_RATE_HZ);
-
-    let mut cycle_count: u64 = 0;
-    loop {
-        // log::info!("starting cycle {}", cycle_count);
-        cycle_count += 1;
-        let start_instant = embassy_time::Instant::now();
-        let next_start_instant = start_instant.saturating_add(cycle_duration);
-
-        // TODO flight controller step
-
-        if embassy_time::Instant::now() > next_start_instant {
-            log::warn!(
-                "cycle {} exceeded duration {} Hz",
-                cycle_count,
-                CYCLE_RATE_HZ
-            );
-        }
-        embassy_time::Timer::at(next_start_instant).await
-    }
+    autonomous::run(drone, CYCLE_RATE_HZ).await;
 }

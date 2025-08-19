@@ -159,7 +159,7 @@ impl Gps for GazeboDrone {
 }
 
 impl QuadCopterMotors for GazeboDrone {
-    fn set_data(&mut self, velocities_pct: [u8; 4]) {
+    fn set_data(&self, velocities_pct: [u8; 4]) {
         self.motors_signal.signal(velocities_pct);
     }
 }
