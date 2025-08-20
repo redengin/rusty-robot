@@ -17,14 +17,14 @@ best practices and be provided tools to easily leverage them.
 
 Outline of the repository
 --------------------------------------------------------------------------------
-* [docs](docs) - documentation for users
-* [simulator](simulator) - allows you to test your robot control in simulated
+* [docs](docs/) - documentation for users
+* [simulator](simulator/) - allows you to test your robot control in simulated
         environments
-* [firmware](firmware) - software ([RUST](https://www.rust-lang.org/)) to support your robot
-    * [drivers](firmware/drivers) - hardware drivers and interface traits
-    * [robots](firmware/robots) - interface traits for common robot systems
-        * subdirectories provide implementations for example/common robots
-    * [flight_controllers](firmware/flight_controllers) - control systems for flying robots
+* [firmware](firmware/) - software ([RUST](https://www.rust-lang.org/)) to support your robot
+    * [drivers](firmware/drivers/) - hardware drivers and interface traits
+    * [robots](firmware/robots/) - interface traits for common robot systems
+        * example implementations (which support simulation)
+    * [flight_controllers](firmware/flight_controllers/) - control systems for flying robots
 
 
 

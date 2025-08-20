@@ -1,2 +1,3 @@
 # ignore rust builds
 /**/target/
+/**/Cargo.lock
