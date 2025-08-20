@@ -7,7 +7,7 @@ trap "trap - TERM && kill -- -$$" INT TERM EXIT
 
 robot="drone"
 # start the drone SITL
-../../../firmware/robots/gazebo-quadcopter/target/debug/autonomous $robot &
+cd ../../../firmware && cargo run --package rusty-robot-gazebo-quadcopter --bin autonomous drone &
 
 # run gazebo
 gazebo.gz sim drone-openworld.sdf
