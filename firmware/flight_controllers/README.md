@@ -27,6 +27,7 @@ Design
 
 Background
 --------------------------------------------------------------------------------
+* [Aircraft Control and Simulation](https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf)
+    * [CHAPTER 9 ADAPTIVE CONTROL WITH APPLICATION TO MINIATURE AERIAL VEHICLES](https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf#page=678)
 * [PX4 Architecture - Flight Stack](https://docs.px4.io/main/en/concept/architecture.html#flight-stack)
-
 
