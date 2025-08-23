@@ -1,0 +1,16 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "probe-rs run --chip STM32F405RG"
+
+# To flash the chip over USB (using DFU)
+#```sh
+# cargo dfu --release --chip stm32 --bin <binary name>"
+#   or
+# cargo dfu --release --chip stm32 --example <example name>"
+#```
+
+
+[build]
+target = "thumbv7em-none-eabihf"
+
+[env]
+DEFMT_LOG = "trace"

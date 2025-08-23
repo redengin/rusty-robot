@@ -1,8 +1,18 @@
 [workspace]
 resolver = "3"
 members = [
+    # hardware drivers (traits and implementations)
     "drivers",
+
+    # flight controllers (traits and implementations)
     "flight_controllers",
+
+    # example robots
     "robots/gazebo-quadcopter",
 ]
 
+exclude = [
+    # physical example robots aren't included in the workspace as
+    #   the use of embassy requires specialized dependencies
+    "robots/f405-quadcopter",
+]

@@ -1,0 +1,49 @@
+[package]
+name = "rusty-robot-f405-quadcopter"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2024"
+
+[dependencies]
+# common dependencies (note, some need features tuned toward hardware)
+defmt = "*"
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
+    "defmt",
+    "arch-cortex-m",
+    "executor-thread",
+    "executor-interrupt",
+] }
+
+# hardware dependencies
+cortex-m-rt = "*"
+embassy-stm32 = { version = "*", features = [
+    "defmt",
+    "memory-x",
+    "stm32f405rg",
+    "time-driver-tim4",
+    # "time",
+    # "unstable-pac",
+    # "time-driver-tim4",
+    # "exti",
+    # "chrono"
+] }
+embassy-usb = { version = "*", features = ["defmt"] }
+
+# FIXME dependencies (undesirable implementations)
+panic-probe = { version = "*", features = ["print-defmt"] }
+
+# defmt-rtt = "*"
+# panic-probe = { version = "*", features = ["print-defmt"] }
+# embassy-stm32 = { version = "*", features = [
+#     # "stm32f405rg",
+#     # "memory-x",
+#     # "defmt",
+#     # "unstable-pac",
+#     # "time-driver-tim4",
+#     # "exti",
+#     # "chrono"
+# ] }
+# embassy-executor = { version = "*", features = [
+#     "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"
+# ] }
+# embassy-time = "*"
