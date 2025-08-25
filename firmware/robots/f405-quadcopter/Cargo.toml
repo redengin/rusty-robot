@@ -12,10 +12,20 @@ edition = "2024"
 
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
     # "defmt",
+    "log",
     "arch-cortex-m",
     "executor-thread",
     "executor-interrupt",
 ] }
+embassy-usb = { version = "*", features = [
+    # "defmt"
+    "log",
+] }
+embassy-futures = { version = "*", features = [
+    # "defmt"
+    "log",
+] }
+
 
 # hardware dependencies
 cortex-m = { version = "*", features = [
@@ -26,34 +36,12 @@ cortex-m-rt = "*"
 panic-reset = "*"
 embassy-stm32 = { version = "*", features = [
     # "defmt",
+    "log",
     "memory-x",
     "stm32f405rg",
     "time-driver-tim4",
     # "time",
     # "unstable-pac",
-    # "time-driver-tim4",
     # "exti",
     # "chrono"
 ] }
-embassy-usb = { version = "*", features = [
-    # "defmt"
-] }
-embassy-futures = { version = "*", features = [
-    # "defmt"
-] }
-
-# defmt-rtt = "*"
-# panic-probe = { version = "*", features = ["print-defmt"] }
-# embassy-stm32 = { version = "*", features = [
-#     # "stm32f405rg",
-#     # "memory-x",
-#     # "defmt",
-#     # "unstable-pac",
-#     # "time-driver-tim4",
-#     # "exti",
-#     # "chrono"
-# ] }
-# embassy-executor = { version = "*", features = [
-#     "arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"
-# ] }
-# embassy-time = "*"

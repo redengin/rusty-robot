@@ -4,45 +4,18 @@
 // upon panic, reset the chip
 use panic_reset as _;
 
-// use defmt::*;
-
+use embassy_executor::Spawner;
 // bind used interrupts to embassy runtime
 embassy_stm32::bind_interrupts!(struct Irqs {
     OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
 });
 
-
-use embassy_executor::Spawner;
-
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
-    // clock configuration for embassy runtime (for desired peripherals)
-    let mut config = embassy_stm32::Config::default();
-    {
-        use embassy_stm32::rcc::*;
-        use embassy_stm32::time::Hertz;
-
-        config.rcc.hse = Some(Hse {
-            freq: Hertz(8_000_000),
-            mode: HseMode::Oscillator,
-        });
-        config.rcc.pll_src = PllSource::HSE;
-        config.rcc.pll = Some(Pll {
-            prediv: PllPreDiv::DIV4,
-            mul: PllMul::MUL168,
-            divp: Some(PllPDiv::DIV2), // 8mhz / 4 * 168 / 2 = 168Mhz.
-            divq: Some(PllQDiv::DIV7), // 8mhz / 4 * 168 / 7 = 48Mhz.
-            divr: None,
-        });
-        config.rcc.ahb_pre = AHBPrescaler::DIV1;
-        config.rcc.apb1_pre = APBPrescaler::DIV4;
-        config.rcc.apb2_pre = APBPrescaler::DIV2;
-        config.rcc.sys = Sysclk::PLL1_P;
-        config.rcc.mux.clk48sel = mux::Clk48sel::PLL1_Q;
-    }
+    let config = rusty_robot_f405_quadcopter::clock_config();
     let peripherals = embassy_stm32::init(config);
 
-    // create the full-speed (fs) USB serial driver, from the HAL.
+    // create HAL USB driver (FS: full-speed)
     let mut ep_out_buffer = [0u8; 256];
     let mut config = embassy_stm32::usb::Config::default();
     config.vbus_detection = false;
@@ -54,24 +27,24 @@ async fn main(_spawner: Spawner) {
         &mut ep_out_buffer,
         config,
     );
+
     // create serial device description
-    let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
-    config.manufacturer = Some("rusty-robot");
-    config.product = Some("defmt-serial");
-    config.serial_number = None;
+    let usb_config = rusty_robot_f405_quadcopter::usb_serial::config();
+
+    // build the USB serial interface
     let mut config_descriptor = [0; 256];
     let mut bos_descriptor = [0; 256];
     let mut control_buf = [0; 64];
-    let mut state = embassy_usb::class::cdc_acm::State::new();
     let mut builder = embassy_usb::Builder::new(
         driver,
-        config,
+        usb_config,
         &mut config_descriptor,
         &mut bos_descriptor,
         &mut [], // no msos descriptors
         &mut control_buf,
     );
     // Create classes on the builder.
+    let mut state = embassy_usb::class::cdc_acm::State::new();
     let mut class = embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut state, 64);
     // Build the builder.
     let mut usb_serial = builder.build();
@@ -93,7 +66,6 @@ async fn main(_spawner: Spawner) {
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
     embassy_futures::join::join(usb_fut, echo_fut).await;
 }
-
 
 async fn echo<'d, T: embassy_stm32::usb::Instance + 'd>(
     class: &mut embassy_usb::class::cdc_acm::CdcAcmClass<'d, embassy_stm32::usb::Driver<'d, T>>,
