@@ -7,17 +7,25 @@ edition = "2024"
 [dependencies]
 # common dependencies (note, some need features tuned toward hardware)
 defmt = "*"
+# defmt-rtt = "1.0.0"
+# defmt-serial = "*"
+
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
-    "defmt",
+    # "defmt",
     "arch-cortex-m",
     "executor-thread",
     "executor-interrupt",
 ] }
 
 # hardware dependencies
+cortex-m = { version = "*", features = [
+    "inline-asm",
+    "critical-section-single-core",
+] }
 cortex-m-rt = "*"
+panic-reset = "*"
 embassy-stm32 = { version = "*", features = [
-    "defmt",
+    # "defmt",
     "memory-x",
     "stm32f405rg",
     "time-driver-tim4",
@@ -27,10 +35,12 @@ embassy-stm32 = { version = "*", features = [
     # "exti",
     # "chrono"
 ] }
-embassy-usb = { version = "*", features = ["defmt"] }
-
-# FIXME dependencies (undesirable implementations)
-panic-probe = { version = "*", features = ["print-defmt"] }
+embassy-usb = { version = "*", features = [
+    # "defmt"
+] }
+embassy-futures = { version = "*", features = [
+    # "defmt"
+] }
 
 # defmt-rtt = "*"
 # panic-probe = { version = "*", features = ["print-defmt"] }

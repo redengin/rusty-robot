@@ -7,22 +7,25 @@ use defmt::*;
 use panic_probe as _;
 // use {defmt_rtt as _, panic_probe as _};
 
-use embassy_executor::Spawner;
-use embassy_stm32::time::Hertz;
-
+// bind used interrupts to embassy runtime
 embassy_stm32::bind_interrupts!(struct Irqs {
     OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
 });
 
+
+use embassy_executor::Spawner;
+
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
-    // clock configuration for embassy runtime
+    // clock configuration for embassy runtime (for desired peripherals)
     let mut config = embassy_stm32::Config::default();
     {
         use embassy_stm32::rcc::*;
+        use embassy_stm32::time::Hertz;
+
         config.rcc.hse = Some(Hse {
             freq: Hertz(8_000_000),
-            mode: HseMode::Bypass,
+            mode: HseMode::Oscillator,
         });
         config.rcc.pll_src = PllSource::HSE;
         config.rcc.pll = Some(Pll {
@@ -75,10 +78,10 @@ async fn main(_spawner: Spawner) {
     let mut usb_serial = builder.build();
 
     // Run the USB device.
-    let _usb_fut = usb_serial.run();
+    let usb_fut = usb_serial.run();
 
     // Do stuff with the class!
-    let _echo_fut = async {
+    let echo_fut = async {
         loop {
             class.wait_connection().await;
             info!("Connected");
@@ -87,14 +90,11 @@ async fn main(_spawner: Spawner) {
         }
     };
 
-    loop {
-        info!("Hello World!");
-    }
-
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
-    // join(usb_fut, echo_fut).await;
+    embassy_futures::join::join(usb_fut, echo_fut).await;
 }
+
 
 async fn echo<'d, T: embassy_stm32::usb::Instance + 'd>(
     class: &mut embassy_usb::class::cdc_acm::CdcAcmClass<'d, embassy_stm32::usb::Driver<'d, T>>,
