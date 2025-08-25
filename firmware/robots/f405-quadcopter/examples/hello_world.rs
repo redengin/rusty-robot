@@ -1,11 +1,10 @@
 #![no_std]
 #![no_main]
 
-use defmt::*;
+// upon panic, reset the chip
+use panic_reset as _;
 
-// FIXME (undesired implementations)
-use panic_probe as _;
-// use {defmt_rtt as _, panic_probe as _};
+// use defmt::*;
 
 // bind used interrupts to embassy runtime
 embassy_stm32::bind_interrupts!(struct Irqs {
@@ -58,8 +57,8 @@ async fn main(_spawner: Spawner) {
     // create serial device description
     let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
     config.manufacturer = Some("rusty-robot");
-    config.product = Some("USB-serial example");
-    config.serial_number = Some("12345678");
+    config.product = Some("defmt-serial");
+    config.serial_number = None;
     let mut config_descriptor = [0; 256];
     let mut bos_descriptor = [0; 256];
     let mut control_buf = [0; 64];
@@ -84,9 +83,9 @@ async fn main(_spawner: Spawner) {
     let echo_fut = async {
         loop {
             class.wait_connection().await;
-            info!("Connected");
+            // info!("Connected");
             let _ = echo(&mut class).await;
-            info!("Disconnected");
+            // info!("Disconnected");
         }
     };
 
@@ -103,7 +102,7 @@ async fn echo<'d, T: embassy_stm32::usb::Instance + 'd>(
     loop {
         let n = class.read_packet(&mut buf).await?;
         let data = &buf[..n];
-        info!("data: {:x}", data);
+        // info!("data: {:x}", data);
         class.write_packet(data).await?;
     }
 }

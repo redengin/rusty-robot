@@ -6,7 +6,7 @@ edition = "2024"
 
 [dependencies]
 # common dependencies (note, some need features tuned toward hardware)
-defmt = "*"
+# defmt = "*"
 # defmt-rtt = "1.0.0"
 # defmt-serial = "*"
 
