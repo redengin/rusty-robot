@@ -36,7 +36,6 @@ pub mod usb_serial {
         let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
         config.manufacturer = Some("rusty-robot");
         config.product = Some("f405-usb-serial");
-        config.serial_number = None;
 
         return config;
     }

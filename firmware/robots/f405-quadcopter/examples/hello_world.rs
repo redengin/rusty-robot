@@ -17,34 +17,40 @@ async fn main(_spawner: Spawner) {
 
     // create HAL USB driver (FS: full-speed)
     let mut ep_out_buffer = [0u8; 256];
-    let mut config = embassy_stm32::usb::Config::default();
-    config.vbus_detection = false;
-    let driver = embassy_stm32::usb::Driver::new_fs(
+    let mut usb_config = embassy_stm32::usb::Config::default();
+    // disable vbus_detection - this is a safe default that works in all boards.
+    // However, if your USB device is self-powered (can stay powered on if USB is unplugged),
+    // you can enable vbus_detection to comply with the USB spec - but the board
+    // has to support it or USB won't work at all. See docs on `vbus_detection` for details.
+    usb_config.vbus_detection = false;
+    let usb_driver = embassy_stm32::usb::Driver::new_fs(
         peripherals.USB_OTG_FS,
         Irqs,
         peripherals.PA12,
         peripherals.PA11,
         &mut ep_out_buffer,
-        config,
+        usb_config,
     );
 
     // create serial device description
-    let usb_config = rusty_robot_f405_quadcopter::usb_serial::config();
+    let mut usb_descriptor = embassy_usb::Config::new(0xc0de, 0xcafe);
+    usb_descriptor.manufacturer = Some("rusty-robot");
+    usb_descriptor.product = Some("f405-usb-serial");
 
     // build the USB serial interface
     let mut config_descriptor = [0; 256];
     let mut bos_descriptor = [0; 256];
     let mut control_buf = [0; 64];
+    let mut state = embassy_usb::class::cdc_acm::State::new();
     let mut builder = embassy_usb::Builder::new(
-        driver,
-        usb_config,
+        usb_driver,
+        usb_descriptor,
         &mut config_descriptor,
         &mut bos_descriptor,
         &mut [], // no msos descriptors
         &mut control_buf,
     );
     // Create classes on the builder.
-    let mut state = embassy_usb::class::cdc_acm::State::new();
     let mut class = embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut state, 64);
     // Build the builder.
     let mut usb_serial = builder.build();
