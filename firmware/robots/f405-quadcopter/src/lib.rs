@@ -31,48 +31,5 @@ pub fn clock_config() -> embassy_stm32::Config {
 }
 
 pub mod usb_serial {
-    pub fn config<'a>() -> embassy_usb::Config<'a> {
-        // create serial device description
-        let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
-        config.manufacturer = Some("rusty-robot");
-        config.product = Some("f405-usb-serial");
 
-        return config;
-    }
-
-    pub struct UsbSerial<'a> {
-        config_descriptor: &'a mut [u8; 256],
-        bos_descriptor: &'a mut [u8; 256],
-        control_buffer: &'a mut [u8; 64],
-    }
-
-    impl<'a> UsbSerial<'a> {
-        pub fn new<D: embassy_usb::driver::Driver<'a>>(driver: D) -> Self {
-
-            let s = Self {
-                // FIXME How do I create these arrays?
-                config_descriptor: todo!(),
-                bos_descriptor: todo!(),
-                control_buffer: todo!(),
-            };
-
-            let mut builder = embassy_usb::Builder::new(
-                driver,
-                config(),
-                s.config_descriptor,
-                s.bos_descriptor,
-                &mut [],
-                s.control_buffer,
-            );
-
-            // Create classes on the builder.
-            // let mut state = embassy_usb::class::cdc_acm::State::new();
-            // let mut class =
-            //     embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut state, 64);
-            // // Build the builder.
-            // let mut usb_serial = builder.build();
-
-            return s;
-        }
-    }
 }
