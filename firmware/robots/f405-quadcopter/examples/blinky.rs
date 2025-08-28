@@ -7,7 +7,7 @@ use panic_reset as _;
 use embassy_executor::Spawner;
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     use embassy_stm32::rcc::*;
     use embassy_stm32::time::Hertz;
 
@@ -34,23 +34,20 @@ async fn main(_spawner: Spawner) {
     }
     let peripherals = embassy_stm32::init(config);
 
-    // 
-    use embassy_stm32::gpio::{Level, Output, Speed};
-
     // blink the light (forever)
-    let mut led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
-    loop {
-        // for _ in 0..30_000_000 {
-        //     led1.set_high();
-        // }
-        // for _ in 0..30_000_000 {
-        //     led1.set_low();
-        // }
+    use embassy_stm32::gpio::{Level, Output, Speed};
+    let led1 = Output::new(peripherals.PC14, Level::Low, Speed::Low);
+    spawner.spawn(task_blinky(led1)).unwrap();
+}
 
-        use embassy_time::Timer;
+#[embassy_executor::task]
+async fn task_blinky(mut led1: embassy_stm32::gpio::Output<'static>) {
+    use embassy_time::Duration;
+    let mut ticker = embassy_time::Ticker::every(Duration::from_hz(2));
+    loop {
+        ticker.next().await;
         led1.set_high();
-        Timer::after_millis(500).await;
+        ticker.next().await;
         led1.set_low();
-        Timer::after_millis(500).await;
     }
 }

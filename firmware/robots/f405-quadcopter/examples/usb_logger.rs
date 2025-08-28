@@ -13,7 +13,7 @@ embassy_stm32::bind_interrupts!(struct Irqs {
 });
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     let config = rusty_robot_f405_quadcopter::clock_config();
     let peripherals = embassy_stm32::init(config);
 
@@ -70,24 +70,29 @@ async fn main(_spawner: Spawner) {
     // let usb_logger_fut = usb_logger.run(&mut usb_logger_state, usb_driver);
     let usb_logger_fut = usb_logger.create_future_from_class(usb_serial_class);
 
-    let log_fut = async {
-        use embassy_stm32::gpio::{Level, Output, Speed};
-        let mut led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
-
-        loop {
-            use embassy_time::Timer;
-
-            info!("turning light off");
-            led1.set_high();
-            Timer::after_millis(500).await;
-            info!("turning light on");
-            led1.set_low();
-            Timer::after_millis(500).await;
-        }
-    };
+    // do the thing
+    use embassy_stm32::gpio::{Level, Output, Speed};
+    let led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
+    spawner.spawn(hello_world(led1)).unwrap();
 
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
     // embassy_futures::join::join(usb_serial_fut, log_fut).await;
-    embassy_futures::join::join3(usb_serial_fut, usb_logger_fut, log_fut).await;
+    // embassy_futures::join::join3(usb_serial_fut, usb_logger_fut, log_fut).await;
+    embassy_futures::join::join(usb_serial_fut, usb_logger_fut).await;
+}
+
+#[embassy_executor::task]
+async fn hello_world(mut led1: embassy_stm32::gpio::Output<'static>) {
+
+    loop {
+        use embassy_time::Timer;
+
+        info!("turning light off");
+        led1.set_high();
+        Timer::after_millis(500).await;
+        info!("turning light on");
+        led1.set_low();
+        Timer::after_millis(500).await;
+    }
 }

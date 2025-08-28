@@ -12,7 +12,7 @@ edition = "2024"
 log = "*"
 embassy-usb-logger = "*"
 
-embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
+embassy-executor = { version = "*", features = [
     # "defmt",
     "log",
     "arch-cortex-m",
@@ -42,7 +42,8 @@ embassy-stm32 = { version = "*", features = [
     "log",
     "memory-x",
     "stm32f405rg",
-    "time-driver-tim4",
+    "time-driver-any",
+    # "time-driver-tim5",
     # "time",
     # "unstable-pac",
     # "exti",
