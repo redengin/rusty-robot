@@ -73,7 +73,7 @@ async fn main(spawner: Spawner) {
     // do the thing
     use embassy_stm32::gpio::{Level, Output, Speed};
     let led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
-    spawner.spawn(hello_world(led1)).unwrap();
+    spawner.spawn(task_log(led1)).unwrap();
 
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
@@ -83,16 +83,16 @@ async fn main(spawner: Spawner) {
 }
 
 #[embassy_executor::task]
-async fn hello_world(mut led1: embassy_stm32::gpio::Output<'static>) {
-
+async fn task_log(mut led1: embassy_stm32::gpio::Output<'static>) {
     loop {
-        use embassy_time::Timer;
+        use embassy_time::Duration;
+        let mut ticker = embassy_time::Ticker::every(Duration::from_hz(2));
 
         info!("turning light off");
         led1.set_high();
-        Timer::after_millis(500).await;
+        ticker.next().await;
         info!("turning light on");
         led1.set_low();
-        Timer::after_millis(500).await;
+        ticker.next().await;
     }
 }
