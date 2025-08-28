@@ -75,19 +75,19 @@ async fn main(_spawner: Spawner) {
         let mut led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
 
         loop {
+            use embassy_time::Timer;
+
             info!("turning light off");
             led1.set_high();
-            // Timer::after_millis(500).await;
+            Timer::after_millis(500).await;
             info!("turning light on");
             led1.set_low();
-            // Timer::after_millis(500).await;
+            Timer::after_millis(500).await;
         }
     };
-
-    log_fut.await;
 
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
     // embassy_futures::join::join(usb_serial_fut, log_fut).await;
-    // embassy_futures::join::join3(usb_serial_fut, usb_logger_fut, log_fut).await;
+    embassy_futures::join::join3(usb_serial_fut, usb_logger_fut, log_fut).await;
 }

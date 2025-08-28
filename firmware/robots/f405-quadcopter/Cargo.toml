@@ -19,7 +19,7 @@ embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features
     "executor-thread",
     "executor-interrupt",
 ] }
-embassy-time = "0.2.1"
+embassy-time = "*"
 embassy-usb = { version = "*", features = [
     # "defmt"
     "log",
@@ -43,7 +43,7 @@ embassy-stm32 = { version = "*", features = [
     "memory-x",
     "stm32f405rg",
     "time-driver-tim4",
-    "time",
+    # "time",
     # "unstable-pac",
     # "exti",
     # "chrono"
