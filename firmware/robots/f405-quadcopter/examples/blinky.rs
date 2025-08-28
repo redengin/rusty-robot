@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use embassy_stm32::timer::low_level::Timer;
 // upon panic, reset the chip
 use panic_reset as _;
 
@@ -40,11 +41,15 @@ async fn main(_spawner: Spawner) {
     // blink the light (forever)
     let mut led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
     loop {
-        for _ in 0..3_000_000 {
+        use embassy_time::Timer;
+
+        // for _ in 0..30_000_000 {
             led1.set_high();
-        }
-        for _ in 0..3_000_000 {
+        // }
+        Timer::after_millis(500).await;
+        // for _ in 0..30_000_000 {
             led1.set_low();
-        }
+        // }
+        Timer::after_millis(500).await;
     }
 }

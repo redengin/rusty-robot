@@ -4,6 +4,8 @@
 // upon panic, reset the chip
 use panic_reset as _;
 
+use log::{*};
+
 use embassy_executor::Spawner;
 // bind used interrupts to embassy runtime
 embassy_stm32::bind_interrupts!(struct Irqs {
@@ -32,45 +34,51 @@ async fn main(_spawner: Spawner) {
         usb_config,
     );
 
-    // create serial device description
-    let mut usb_descriptor = embassy_usb::Config::new(0xc0de, 0xcafe);
-    usb_descriptor.manufacturer = Some("rusty-robot");
-    usb_descriptor.product = Some("f405-usb-serial");
+    // Working example (TODO have lib.rs provide an instance that exposes usb_serial.run() and class)
+    {
+        // create serial device description
+        let mut usb_descriptor = embassy_usb::Config::new(0xc0de, 0xcafe);
+        usb_descriptor.manufacturer = Some("rusty-robot");
+        usb_descriptor.product = Some("f405-usb-serial");
 
-    // build the USB serial interface
-    let mut config_descriptor = [0; 256];
-    let mut bos_descriptor = [0; 256];
-    let mut control_buf = [0; 64];
-    let mut state = embassy_usb::class::cdc_acm::State::new();
-    let mut builder = embassy_usb::Builder::new(
-        usb_driver,
-        usb_descriptor,
-        &mut config_descriptor,
-        &mut bos_descriptor,
-        &mut [], // no msos descriptors
-        &mut control_buf,
-    );
-    // Create classes on the builder.
-    let mut class = embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut state, 64);
-    // Build the builder.
-    let mut usb_serial = builder.build();
+        // build the USB serial interface
+        let mut config_descriptor = [0; 256];
+        let mut bos_descriptor = [0; 256];
+        let mut control_buf = [0; 64];
+        let mut state = embassy_usb::class::cdc_acm::State::new();
+        let mut builder = embassy_usb::Builder::new(
+            usb_driver,
+            usb_descriptor,
+            &mut config_descriptor,
+            &mut bos_descriptor,
+            &mut [], // no msos descriptors
+            &mut control_buf,
+        );
+        // Create classes on the builder.
+        let mut class = embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut state, 64);
+        // Build the builder.
+        let mut usb_serial = builder.build();
 
-    // Run the USB device.
-    let usb_fut = usb_serial.run();
+        // Run the USB device.
+        let usb_fut = usb_serial.run();
 
-    // Do stuff with the class!
-    let echo_fut = async {
-        loop {
-            class.wait_connection().await;
-            // info!("Connected");
-            let _ = echo(&mut class).await;
-            // info!("Disconnected");
-        }
-    };
+        // Do stuff with the class!
+        let echo_fut = async {
+            loop {
+                class.wait_connection().await;
+                info!("Connected");
+                let _ = echo(&mut class).await;
+                info!("Disconnected");
+            }
+        };
 
-    // Run everything concurrently.
-    // If we had made everything `'static` above instead, we could do this using separate tasks instead.
-    embassy_futures::join::join(usb_fut, echo_fut).await;
+        // Run everything concurrently.
+        // If we had made everything `'static` above instead, we could do this using separate tasks instead.
+        embassy_futures::join::join(usb_fut, echo_fut).await;
+    }
+
+
+
 }
 
 async fn echo<'d, T: embassy_stm32::usb::Instance + 'd>(
@@ -80,7 +88,7 @@ async fn echo<'d, T: embassy_stm32::usb::Instance + 'd>(
     loop {
         let n = class.read_packet(&mut buf).await?;
         let data = &buf[..n];
-        // info!("data: {:x}", data);
+        info!("got data");
         class.write_packet(data).await?;
     }
 }
