@@ -11,7 +11,6 @@ edition = "2024"
 # defmt-serial = "*"
 log = "*"
 embassy-usb-logger = "*"
-
 embassy-executor = { version = "*", features = [
     # "defmt",
     "log",
@@ -28,7 +27,7 @@ embassy-futures = { version = "*", features = [
     # "defmt"
     "log",
 ] }
-
+static_cell = "*"
 
 # hardware dependencies
 cortex-m = { version = "*", features = [

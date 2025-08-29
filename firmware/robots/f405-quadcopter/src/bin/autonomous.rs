@@ -6,11 +6,6 @@ use panic_reset as _;
 
 use log::*;
 
-// bind used interrupts to embassy runtime
-embassy_stm32::bind_interrupts!(struct Irqs {
-    OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
-});
-
 #[embassy_executor::main]
 async fn main(spawner: embassy_executor::Spawner) {
     let config = rusty_robot_f405_quadcopter::clock_config();
@@ -18,7 +13,7 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // create the USB driver
     let mut usb_driver=
-        rusty_robot_f405_quadcopter::usb_serial::driver(
+        rusty_robot_f405_quadcopter::usb::driver(
             peripherals.USB_OTG_FS,
             peripherals.PA12,
             peripherals.PA11,

@@ -28,13 +28,13 @@ pub fn clock_config() -> embassy_stm32::Config {
     return config;
 }
 
-pub mod usb_serial {
+pub mod usb {
     use embassy_stm32::peripherals;
 
+    use static_cell::StaticCell;
+    static EP_OUT_BUFFER: StaticCell<[u8; 256]> = StaticCell::new();
+
     pub fn driver(
-        // usb: peripherals::USB_OTG_FS,
-        // dp_pin: peripherals::PA12,
-        // dm_pin: peripherals::PA11,
         usb: embassy_stm32::Peri<'static, peripherals::USB_OTG_FS>,
         dp: embassy_stm32::Peri<'static, peripherals::PA12>,
         dm: embassy_stm32::Peri<'static, peripherals::PA11>,
@@ -53,15 +53,13 @@ pub mod usb_serial {
         // has to support it or USB won't work at all. See docs on `vbus_detection` for details.
         usb_config.vbus_detection = false;
 
-        let mut ep_out_buffer = [0u8; 256];
+        let ep_out_buffer = EP_OUT_BUFFER.init([0;256]);
         embassy_stm32::usb::Driver::new_fs(
-            usb, 
+            usb,
             Irqs,
-            dp,
-            dm,
-            &mut ep_out_buffer,     // `ep_out_buffer` is borrowed here
-            usb_config,
+            dp, dm,
+            ep_out_buffer,
+            usb_config
         )
-        // ^ returns a value referencing data owned by the current function
     }
 }
