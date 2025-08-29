@@ -1,7 +1,5 @@
 #![no_std]
 
-use cortex_m::peripheral;
-
 pub fn clock_config() -> embassy_stm32::Config {
     // clock configuration for embassy runtime (w/ support USB serial)
     let mut config = embassy_stm32::Config::default();
@@ -31,5 +29,39 @@ pub fn clock_config() -> embassy_stm32::Config {
 }
 
 pub mod usb_serial {
+    use embassy_stm32::peripherals;
 
+    pub fn driver(
+        // usb: peripherals::USB_OTG_FS,
+        // dp_pin: peripherals::PA12,
+        // dm_pin: peripherals::PA11,
+        usb: embassy_stm32::Peri<'static, peripherals::USB_OTG_FS>,
+        dp: embassy_stm32::Peri<'static, peripherals::PA12>,
+        dm: embassy_stm32::Peri<'static, peripherals::PA11>,
+    ) -> embassy_stm32::usb::Driver<'static, peripherals::USB_OTG_FS> {
+        // bind the Irq
+        embassy_stm32::bind_interrupts!(struct Irqs {
+            OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
+        });
+
+        // USB driver (FS: full-speed)
+        //--------------------------------------------------------------------------------
+        let mut usb_config = embassy_stm32::usb::Config::default();
+        // disable vbus_detection - this is a safe default that works in all boards.
+        // However, if your USB device is self-powered (can stay powered on if USB is unplugged),
+        // you can enable vbus_detection to comply with the USB spec - but the board
+        // has to support it or USB won't work at all. See docs on `vbus_detection` for details.
+        usb_config.vbus_detection = false;
+
+        let mut ep_out_buffer = [0u8; 256];
+        embassy_stm32::usb::Driver::new_fs(
+            usb, 
+            Irqs,
+            dp,
+            dm,
+            &mut ep_out_buffer,     // `ep_out_buffer` is borrowed here
+            usb_config,
+        )
+        // ^ returns a value referencing data owned by the current function
+    }
 }
