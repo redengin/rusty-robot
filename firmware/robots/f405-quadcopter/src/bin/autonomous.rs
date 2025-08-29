@@ -12,18 +12,15 @@ async fn main(spawner: embassy_executor::Spawner) {
     let peripherals = embassy_stm32::init(config);
 
     // create the USB driver
-    let mut usb_driver=
-        rusty_robot_f405_quadcopter::usb::driver(
-            peripherals.USB_OTG_FS,
-            peripherals.PA12,
-            peripherals.PA11,
-        );
+    let mut usb_driver = rusty_robot_f405_quadcopter::usb::driver(
+        peripherals.USB_OTG_FS,
+        peripherals.PA12,
+        peripherals.PA11,
+    );
 
-
-    // spawner.spawn(task_usb_serial(usb_serial));
-
-
-
+    // start the UART interface
+    let usb_serial = rusty_robot_f405_quadcopter::usb::usb_serial::device(usb_driver);
+    spawner.spawn(task_usb_serial(usb_serial)).unwrap();
 }
 
 #[embassy_executor::task]

@@ -30,6 +30,7 @@ pub fn clock_config() -> embassy_stm32::Config {
 
 pub mod usb {
     use embassy_stm32::peripherals;
+    use embassy_stm32::usb;
 
     use static_cell::StaticCell;
     static EP_OUT_BUFFER: StaticCell<[u8; 256]> = StaticCell::new();
@@ -38,7 +39,7 @@ pub mod usb {
         usb: embassy_stm32::Peri<'static, peripherals::USB_OTG_FS>,
         dp: embassy_stm32::Peri<'static, peripherals::PA12>,
         dm: embassy_stm32::Peri<'static, peripherals::PA11>,
-    ) -> embassy_stm32::usb::Driver<'static, peripherals::USB_OTG_FS> {
+    ) -> usb::Driver<'static, peripherals::USB_OTG_FS> {
         // bind the Irq
         embassy_stm32::bind_interrupts!(struct Irqs {
             OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
@@ -53,13 +54,51 @@ pub mod usb {
         // has to support it or USB won't work at all. See docs on `vbus_detection` for details.
         usb_config.vbus_detection = false;
 
-        let ep_out_buffer = EP_OUT_BUFFER.init([0;256]);
         embassy_stm32::usb::Driver::new_fs(
             usb,
             Irqs,
-            dp, dm,
-            ep_out_buffer,
-            usb_config
+            dp,
+            dm,
+            EP_OUT_BUFFER.init([0; _]),
+            usb_config,
         )
+    }
+
+    pub mod usb_serial {
+        use embassy_stm32::peripherals;
+        use embassy_stm32::usb;
+        use embassy_usb::UsbDevice;
+
+        use static_cell::StaticCell;
+        static CONFIG_DESCRIPTOR: StaticCell<[u8; 256]> = StaticCell::new();
+        static BOS_DESCRIPTOR: StaticCell<[u8; 256]> = StaticCell::new();
+        static CONTROL_BUFFER: StaticCell<[u8; 64]> = StaticCell::new();
+        static STATE: StaticCell<embassy_usb::class::cdc_acm::State> = StaticCell::new();
+
+        pub fn device(
+            usb_driver: usb::Driver<'static, peripherals::USB_OTG_FS>,
+        ) -> UsbDevice<'static, usb::Driver<'static, peripherals::USB_OTG_FS>> {
+            // create serial device description
+            let mut usb_descriptor = embassy_usb::Config::new(0xc0de, 0xcafe);
+            usb_descriptor.manufacturer = Some("rusty-robot");
+            usb_descriptor.product = Some("f405-usb-serial");
+
+            // build the USB serial interface w/ class
+            let mut builder = embassy_usb::Builder::new(
+                usb_driver,
+                usb_descriptor,
+                CONFIG_DESCRIPTOR.init([0; _]),
+                BOS_DESCRIPTOR.init([0; _]),
+                &mut [], // no msos descriptors
+                CONTROL_BUFFER.init([0; _]),
+            );
+            // Create classes on the builder.
+            let usb_serial_class = embassy_usb::class::cdc_acm::CdcAcmClass::new(
+                &mut builder,
+                STATE.init(embassy_usb::class::cdc_acm::State::new()),
+                64,
+            );
+            builder.build()
+        }
     }
 }
