@@ -1,32 +1,48 @@
 #![no_std]
 
-pub fn clock_config() -> embassy_stm32::Config {
-    // clock configuration for embassy runtime (w/ support USB serial)
-    let mut config = embassy_stm32::Config::default();
+/// initializes the hardware via embassy
+pub fn init() -> embassy_stm32::Peripherals {
+    //! uses the internal oscillator
+    let mut clock_config = embassy_stm32::Config::default();
     {
         use embassy_stm32::rcc::*;
         use embassy_stm32::time::Hertz;
 
-        config.rcc.hse = Some(Hse {
+        clock_config.rcc.hse = Some(Hse {
             freq: Hertz(8_000_000),
             mode: HseMode::Oscillator,
         });
-        config.rcc.pll_src = PllSource::HSE;
-        config.rcc.pll = Some(Pll {
+        clock_config.rcc.pll_src = PllSource::HSE;
+        clock_config.rcc.pll = Some(Pll {
             prediv: PllPreDiv::DIV4,
             mul: PllMul::MUL168,
-            divp: Some(PllPDiv::DIV2), // 8mhz / 4 * 168 / 2 = 168Mhz.
-            divq: Some(PllQDiv::DIV7), // 8mhz / 4 * 168 / 7 = 48Mhz.
+            divp: Some(PllPDiv::DIV2), // 8mhz (hse) / 4 * 168 / 2 = 168Mhz.
+            divq: Some(PllQDiv::DIV7), // 8mhz (hse) / 4 * 168 / 7 = 48Mhz.
             divr: None,
         });
-        config.rcc.ahb_pre = AHBPrescaler::DIV1;
-        config.rcc.apb1_pre = APBPrescaler::DIV4;
-        config.rcc.apb2_pre = APBPrescaler::DIV2;
-        config.rcc.sys = Sysclk::PLL1_P;
-        config.rcc.mux.clk48sel = mux::Clk48sel::PLL1_Q;
-    }
-    return config;
+        clock_config.rcc.ahb_pre = AHBPrescaler::DIV1;
+        clock_config.rcc.apb1_pre = APBPrescaler::DIV4;
+        clock_config.rcc.apb2_pre = APBPrescaler::DIV2;
+        clock_config.rcc.sys = Sysclk::PLL1_P;
+        clock_config.rcc.mux.clk48sel = mux::Clk48sel::PLL1_Q;
+    };
+
+    // initialize the hardware using embassy
+    embassy_stm32::init(clock_config)
+
 }
+
+#[embassy_executor::task]
+pub async fn usb_logger_task(
+    driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>,
+) {
+    embassy_usb_logger::run!(1024, log::LevelFilter::Info, driver);
+
+    // TODO provide formatted logs
+    // use embassy_usb_logger::{UsbLogger, DummyHandler};
+    // let logger: UsbLogger<1024, DummyHandler> = UsbLogger::with_custom_style(custom_style);
+}
+
 
 // pub mod usb {
 //     use embassy_stm32::peripherals;
