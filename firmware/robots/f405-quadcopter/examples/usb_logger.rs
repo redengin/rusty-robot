@@ -8,9 +8,11 @@ use log::*;
 
 use embassy_executor::Spawner;
 // bind used interrupts to embassy runtime
-embassy_stm32::bind_interrupts!(struct Irqs {
+embassy_stm32::bind_interrupts!(pub struct Irqs {
     OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
 });
+
+static EP_OUT_BUFFER: static_cell::StaticCell<[u8; 256]> = static_cell::StaticCell::new();
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -19,7 +21,6 @@ async fn main(spawner: Spawner) {
 
     // USB driver (FS: full-speed)
     //--------------------------------------------------------------------------------
-    let mut ep_out_buffer = [0u8; 256];
     let mut usb_config = embassy_stm32::usb::Config::default();
     // disable vbus_detection - this is a safe default that works in all boards.
     // However, if your USB device is self-powered (can stay powered on if USB is unplugged),
@@ -31,68 +32,26 @@ async fn main(spawner: Spawner) {
         Irqs,
         peripherals.PA12,
         peripherals.PA11,
-        &mut ep_out_buffer,
+        EP_OUT_BUFFER.init([0;_]),
         usb_config,
     );
-    // create serial device description
-    let mut usb_descriptor = embassy_usb::Config::new(0xc0de, 0xcafe);
-    usb_descriptor.manufacturer = Some("rusty-robot");
-    usb_descriptor.product = Some("f405-usb-serial");
-    // build the USB serial interface
-    let mut config_descriptor = [0; 256];
-    let mut bos_descriptor = [0; 256];
-    let mut control_buf = [0; 64];
-    let mut state = embassy_usb::class::cdc_acm::State::new();
-    let mut builder = embassy_usb::Builder::new(
-        usb_driver,
-        usb_descriptor,
-        &mut config_descriptor,
-        &mut bos_descriptor,
-        &mut [], // no msos descriptors
-        &mut control_buf,
-    );
-    // Create classes on the builder.
-    let usb_serial_class =
-        embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut state, 64);
-    // Build the builder.
-    let mut usb_serial = builder.build();
 
-    // Run the USB device.
-    let usb_serial_fut = usb_serial.run();
+    spawner.spawn(usb_logger_task(usb_driver)).unwrap();
 
-    // USB Logger
-    //--------------------------------------------------------------------------------
-    // let usb_logger: embassy_usb_logger::UsbLogger<1024, embassy_usb_logger::DummyHandler> =
-    //     embassy_usb_logger::UsbLogger::new();
-    static usb_logger: embassy_usb_logger::UsbLogger<1024, embassy_usb_logger::DummyHandler> =
-        embassy_usb_logger::UsbLogger::new();
-    // let mut usb_logger_state = embassy_usb_logger::LoggerState::new();
-    // let usb_logger_fut = usb_logger.run(&mut usb_logger_state, usb_driver);
-    let usb_logger_fut = usb_logger.create_future_from_class(usb_serial_class);
+    spawner.spawn(hello_world_task()).unwrap();
 
-    // do the thing
-    use embassy_stm32::gpio::{Level, Output, Speed};
-    let led1 = Output::new(peripherals.PC14, Level::High, Speed::Low);
-    spawner.spawn(task_log(led1)).unwrap();
-
-    // Run everything concurrently.
-    // If we had made everything `'static` above instead, we could do this using separate tasks instead.
-    // embassy_futures::join::join(usb_serial_fut, log_fut).await;
-    // embassy_futures::join::join3(usb_serial_fut, usb_logger_fut, log_fut).await;
-    embassy_futures::join::join(usb_serial_fut, usb_logger_fut).await;
+    // // Run everything concurrently.
 }
 
 #[embassy_executor::task]
-async fn task_log(mut led1: embassy_stm32::gpio::Output<'static>) {
-    loop {
-        use embassy_time::Duration;
-        let mut ticker = embassy_time::Ticker::every(Duration::from_hz(2));
+async fn usb_logger_task(driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>) {
+   embassy_usb_logger::run!(1024, log::LevelFilter::Info, driver);
+}
 
-        info!("turning light off");
-        led1.set_high();
-        ticker.next().await;
-        info!("turning light on");
-        led1.set_low();
-        ticker.next().await;
+#[embassy_executor::task]
+async fn hello_world_task() {
+    loop {
+        info!("Hello World!");
+        embassy_time::Timer::after_millis(500).await;
     }
 }
