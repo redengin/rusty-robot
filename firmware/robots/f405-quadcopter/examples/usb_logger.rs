@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use embassy_usb_logger::DummyHandler;
 // upon panic, reset the chip
 use panic_reset as _;
 
@@ -32,7 +33,7 @@ async fn main(spawner: Spawner) {
         Irqs,
         peripherals.PA12,
         peripherals.PA11,
-        EP_OUT_BUFFER.init([0;_]),
+        EP_OUT_BUFFER.init([0; _]),
         usb_config,
     );
 
@@ -44,8 +45,14 @@ async fn main(spawner: Spawner) {
 }
 
 #[embassy_executor::task]
-async fn usb_logger_task(driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>) {
-   embassy_usb_logger::run!(1024, log::LevelFilter::Info, driver);
+async fn usb_logger_task(
+    driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>,
+) {
+    embassy_usb_logger::run!(1024, log::LevelFilter::Info, driver);
+
+    // TODO provide formatted logs
+    // use embassy_usb_logger::{UsbLogger, DummyHandler};
+    // let logger: UsbLogger<1024, DummyHandler> = UsbLogger::with_custom_style(custom_style);
 }
 
 #[embassy_executor::task]
