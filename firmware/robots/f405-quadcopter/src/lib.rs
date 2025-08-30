@@ -77,7 +77,13 @@ pub mod usb {
 
         pub fn device(
             usb_driver: usb::Driver<'static, peripherals::USB_OTG_FS>,
-        ) -> UsbDevice<'static, usb::Driver<'static, peripherals::USB_OTG_FS>> {
+        ) -> (
+            UsbDevice<'static, usb::Driver<'static, peripherals::USB_OTG_FS>>,
+            embassy_usb::class::cdc_acm::CdcAcmClass<
+                'static,
+                usb::Driver<'static, peripherals::USB_OTG_FS>,
+            >,
+        ) {
             // create serial device description
             let mut usb_descriptor = embassy_usb::Config::new(0xc0de, 0xcafe);
             usb_descriptor.manufacturer = Some("rusty-robot");
@@ -98,7 +104,8 @@ pub mod usb {
                 STATE.init(embassy_usb::class::cdc_acm::State::new()),
                 64,
             );
-            builder.build()
+
+            (builder.build(), usb_serial_class)
         }
     }
 }
