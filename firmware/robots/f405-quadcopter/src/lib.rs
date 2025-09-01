@@ -1,5 +1,8 @@
 #![no_std]
 
+
+use embassy_usb_logger::{DummyHandler, UsbLogger};
+
 /// initializes the hardware via embassy
 pub fn init() -> embassy_stm32::Peripherals {
     //! uses the internal oscillator
@@ -41,9 +44,34 @@ pub mod usb {
 pub async fn usb_logger_task(
     driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>,
 ) {
-    embassy_usb_logger::run!(1024, log::LevelFilter::Info, driver);
+    const USB_LOG_BUFFER_SZ: usize = 1024;
 
-    // TODO provide formatted logs
-    // use embassy_usb_logger::{UsbLogger, DummyHandler};
-    // let logger: UsbLogger<1024, DummyHandler> = UsbLogger::with_custom_style(custom_style);
+    // unformatted logs
+    // embassy_usb_logger::run!(USB_LOG_BUFFER_SZ, log::LevelFilter::Info, driver);
+
+    /// does not support receiving data over USB serial
+    use embassy_usb_logger::DummyHandler;
+    static LOGGER: embassy_usb_logger::UsbLogger<USB_LOG_BUFFER_SZ, DummyHandler> =
+        embassy_usb_logger::UsbLogger::new();
+    // provide the global logger interface
+    unsafe {
+        // FIXME choose log level(s) from environment
+        let _ = ::log::set_logger_racy(&LOGGER).map(|()| log::set_max_level_racy(log::LevelFilter::Debug));
+    }
+    LOGGER.run(&mut ::embassy_usb_logger::LoggerState::new(), driver).await;
+
+
+    // provide formatted logs
+    // let logger: UsbLogger<USB_LOG_BUFFER_SZ, DummyHandler> =
+    //     // embassy_usb_logger::UsbLogger::with_custom_style(log_style);
+    //     embassy_usb_logger::UsbLogger::with_custom_style(
+    //         |_record, writer| {
+    //             writer.write_str("hello world").unwrap();
+    //         }
+    //     );
+
+    // logger.run(&mut ::embassy_usb_logger::LoggerState::new(), driver).await;
+
+    // fn log_style(record: &log::Record, writer: &mut embassy_usb_logger::Writer<USB_LOG_BUFFER_SZ>) {
+    // }
 }
