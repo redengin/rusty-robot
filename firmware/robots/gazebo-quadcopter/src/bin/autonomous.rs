@@ -19,6 +19,7 @@ macro_rules! mk_static {
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    // support logging
     env_logger::builder().format_timestamp_millis().init();
 
     // collect command-line arguments

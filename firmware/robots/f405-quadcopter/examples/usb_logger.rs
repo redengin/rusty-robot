@@ -26,7 +26,6 @@ async fn main(spawner: embassy_executor::Spawner) {
         rusty_robot_f405_quadcopter::usb::EP_OUT_BUFFER.init([0; _]),
         embassy_stm32::usb::Config::default(),
     );
-
     // start the logger
     use rusty_robot_f405_quadcopter::usb_logger_task;
     spawner.spawn(usb_logger_task(usb_driver)).unwrap();

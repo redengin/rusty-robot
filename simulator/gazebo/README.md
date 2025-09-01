@@ -11,8 +11,5 @@ Gazebo (https://gazebosim.org)
 
 Rusty Robot Example Simulations
 ================================================================================
-* [quad-copter](quad-copter/README.md) - a simulation of a quad-copter
-
-
-
+* [quadcopter](quadcopter/README.md) - a simulation of a quadcopter
 
