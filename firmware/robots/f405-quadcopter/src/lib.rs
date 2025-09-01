@@ -1,6 +1,5 @@
 #![no_std]
 
-
 use embassy_usb_logger::{DummyHandler, UsbLogger};
 
 /// initializes the hardware via embassy
@@ -46,32 +45,40 @@ pub async fn usb_logger_task(
 ) {
     const USB_LOG_BUFFER_SZ: usize = 1024;
 
-    // unformatted logs
-    // embassy_usb_logger::run!(USB_LOG_BUFFER_SZ, log::LevelFilter::Info, driver);
-
-    /// does not support receiving data over USB serial
+    // create the LOGGER
     use embassy_usb_logger::DummyHandler;
     static LOGGER: embassy_usb_logger::UsbLogger<USB_LOG_BUFFER_SZ, DummyHandler> =
-        embassy_usb_logger::UsbLogger::new();
+        embassy_usb_logger::UsbLogger::with_custom_style(log_style);
     // provide the global logger interface
     unsafe {
         // FIXME choose log level(s) from environment
-        let _ = ::log::set_logger_racy(&LOGGER).map(|()| log::set_max_level_racy(log::LevelFilter::Debug));
+        let _ = ::log::set_logger_racy(&LOGGER)
+            .map(|()| log::set_max_level_racy(log::LevelFilter::Debug));
     }
-    LOGGER.run(&mut ::embassy_usb_logger::LoggerState::new(), driver).await;
+    // run the logger service
+    LOGGER
+        .run(&mut ::embassy_usb_logger::LoggerState::new(), driver)
+        .await;
 
-
-    // provide formatted logs
-    // let logger: UsbLogger<USB_LOG_BUFFER_SZ, DummyHandler> =
-    //     // embassy_usb_logger::UsbLogger::with_custom_style(log_style);
-    //     embassy_usb_logger::UsbLogger::with_custom_style(
-    //         |_record, writer| {
-    //             writer.write_str("hello world").unwrap();
-    //         }
-    //     );
-
-    // logger.run(&mut ::embassy_usb_logger::LoggerState::new(), driver).await;
-
-    // fn log_style(record: &log::Record, writer: &mut embassy_usb_logger::Writer<USB_LOG_BUFFER_SZ>) {
-    // }
+    // provide styling for log messages
+    fn log_style(record: &log::Record, writer: &mut embassy_usb_logger::Writer<USB_LOG_BUFFER_SZ>) {
+        use core::fmt::Write;
+        let level = record.level().as_str();
+        let target = record.target();
+        // log level priority is descending
+        if (record.level() < log::LevelFilter::Debug) || record.file().is_none() {
+            write!(writer, "{level}:{target}:{}\n", record.args()).unwrap();
+        } else {
+            // provide extra info for debug and below
+            let file = match record.file() {
+                Some(v) => v, 
+                None => ""
+            };
+            let line = match record.line() {
+                Some(v) => v, 
+                None => 0
+            };
+            write!(writer, "{level}:{target}:{} [{file}:{line}]\n", record.args()).unwrap();
+        }
+    }
 }

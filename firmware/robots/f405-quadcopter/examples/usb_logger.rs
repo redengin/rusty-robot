@@ -34,6 +34,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // demonstrate logging
     loop {
         info!("Hello World!");
+        debug!("Goodbye World!");
         embassy_time::Timer::after_millis(500).await;
     }
 }
