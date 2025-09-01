@@ -1,7 +1,5 @@
 #![no_std]
 
-use embassy_usb_logger::{DummyHandler, UsbLogger};
-
 /// initializes the hardware via embassy
 pub fn init() -> embassy_stm32::Peripherals {
     //! uses the internal oscillator
@@ -61,13 +59,14 @@ pub async fn usb_logger_task(
         .await;
 
     // provide styling for log messages
+    // TODO use a standardized style
     fn log_style(record: &log::Record, writer: &mut embassy_usb_logger::Writer<USB_LOG_BUFFER_SZ>) {
         use core::fmt::Write;
         let level = record.level().as_str();
         let target = record.target();
         // log level priority is descending
         if (record.level() < log::LevelFilter::Debug) || record.file().is_none() {
-            write!(writer, "{level}:{target}:{}\n", record.args()).unwrap();
+            write!(writer, "{level:>5}:{target}:{}\n", record.args()).unwrap();
         } else {
             // provide extra info for debug and below
             let file = match record.file() {
@@ -78,7 +77,7 @@ pub async fn usb_logger_task(
                 Some(v) => v, 
                 None => 0
             };
-            write!(writer, "{level}:{target}:{} [{file}:{line}]\n", record.args()).unwrap();
+            write!(writer, "{level:>5}:{target}:{} [{file}:{line}]\n", record.args()).unwrap();
         }
     }
 }
