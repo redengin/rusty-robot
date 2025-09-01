@@ -1,4 +1,5 @@
 //! Autonomous Drone (maneuvers to points in space)
+use embassy_time::{Duration, Ticker};
 use log::*;
 use rusty_robot_flight_controllers::autonomous;
 use std::env;
@@ -46,5 +47,10 @@ async fn main(spawner: Spawner) {
 #[embassy_executor::task]
 async fn flight_controller(drone: &'static GazeboDrone) {
     const CYCLE_RATE_HZ: u64 = 8000;
-    autonomous::run(drone, CYCLE_RATE_HZ).await;
+
+    let mut ticker = Ticker::every(Duration::from_hz(CYCLE_RATE_HZ));
+    loop {
+        autonomous::step(drone);
+        ticker.next().await
+    }
 }
