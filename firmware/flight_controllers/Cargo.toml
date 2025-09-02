@@ -17,3 +17,6 @@ embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
     "std",
     "log",
 ] }
+
+# neural network support (https://crates.io/search?q=neural-network%20no_std)
+fnn = "*"
