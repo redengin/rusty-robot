@@ -60,9 +60,9 @@ Design
 
 
 ### Implementation Guidance
-[Aircraft Control and Simulation](https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf) generalizes the control algorithm to
-a nonlinear curve fitting[^1] and suggests the use of a neural network[^2] as a
-robust solution (w/ mathematical analysis and simulation).
+[Aircraft Control and Simulation](https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf)
+generalizes the control algorithm to a nonlinear curve fitting[^1] and suggests the use of a
+neural network[^2] as a robust solution (w/ mathematical analysis and simulation).
 
 
 

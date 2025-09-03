@@ -48,3 +48,5 @@ embassy-stm32 = { version = "*", features = [
     # "exti",
     # "chrono"
 ] }
+
+rusty-robot-flight-controllers = { path = "../../flight_controllers" }

@@ -13,10 +13,12 @@ rusty-robot-drivers = { path = "../drivers" }
 # shared robot traits
 rusty-robot-robots = { path = "../robots/" }
 
-embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
-    "std",
-    "log",
-] }
+# embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
+#     "std",
+#     "log",
+# ] }
 
 # neural network support (https://crates.io/search?q=neural-network%20no_std)
-fnn = "*"
+# fnn = "*"   # FIXME uses std dependency implementations
+# fnn = { git = "https://github.com/redengin/fnn.git" }
+# fnn = { path = "../../../fnn/" }
