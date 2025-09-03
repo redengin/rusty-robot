@@ -4,19 +4,24 @@ Flight Controllers
 
 Concept of Operations (CONOPS)
 --------------------------------------------------------------------------------
-### Intent-Driven Design Pattern
-Provide the user's desired functionality - without requiring an understanding
-of the system.
+### User Stories
+* User wants the drone to manuever across a region
+    * uses Autonomous Control to provide a sequential set of waypoints and
+        deadlines.
+* User wants to navigate the drone directly
+    * uses Direct Control to manually change the drone position
+* User wants the drone to drone to stay in their vicinity
+    * leverages Autonomous Control to maintain the drone position by updating
+        the waypoints per the leash algorithm
 
-Intent-driven flight controllers internally manage the vehicle dynamics
-(environmental influences and hardware degradation). By leveraging mathematics,
-a well-designed intent-driven flight controller
-* eliminates effort
-    * describing the hardware to the system
-    * tuning hardware control parameters
-* increases
-    * robustness - allowing the flight controller to change orientation
-        to maximize progress toward intent
+### Intent-Driven Design Pattern
+Users want the functionality. This design creates a self-characterizing
+system - eliminating the need for any tuning parameters.
+
+Self-characterizing systems autonomously adapt toward user intent
+    * adapt to environmental conditions
+    * overcome hardware degradation - i.e. if a propellor is damaged,
+        the system will compensate
 
 #### Intents
 * Autonomous Control
@@ -29,20 +34,11 @@ a well-designed intent-driven flight controller
     * flight controller manages motor actuation to produce the desired
         trajectory
 
-User Stories
---------------------------------------------------------------------------------
-* User wants the drone to manuever across a region
-    * uses Autonomous Control to provide a sequential set of waypoints and
-        deadlines.
-* User wants to navigate the drone directly
-    * uses Direct Control to explore
-* User wants the drone to drone to stay in their vicinity
-    * leverages Autonomous Control to maintain the drone position by updating
-        the waypoints per the leash algorithm
-
 Design
 --------------------------------------------------------------------------------
-### Primitives
+
+
+## Primitives
 * **self-characterized** - flight controller continuously characterizes the
    actuation (motors/propellers) impact on the vehicle
    * to maximize performance toward intent, the flight controller should
@@ -51,8 +47,11 @@ Design
                 simpler to translate the input (i.e. rotate the world around
                 the drone)
 
-### Safety Primitives
+## Safety Primitives
 * When **unable** to continue toward intent, the flight controller manages a soft descent
+
+### Design Guidance
+
 
 ### Background (Optional)
 * [Quadcopter Dynamics, Simulation, and Control](https://andrew.gibiansky.com/downloads/pdf/Quadcopter%20Dynamics,%20Simulation,%20and%20Control.pdf)
