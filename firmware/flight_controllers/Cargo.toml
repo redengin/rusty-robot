@@ -20,5 +20,4 @@ rusty-robot-robots = { path = "../robots/" }
 
 # neural network support (https://crates.io/search?q=neural-network%20no_std)
 # fnn = "*"   # FIXME uses std dependency implementations
-# fnn = { git = "https://github.com/redengin/fnn.git" }
 # fnn = { path = "../../../fnn/" }

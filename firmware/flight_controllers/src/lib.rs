@@ -23,46 +23,46 @@ pub mod autonomous {
 /// use a neural network to learn XOR
 ///     profile how long it takes
 pub fn learn_xor() {
-    use fnn::prelude::{SVector, Sigmoid};
+    // use fnn::prelude::{SVector, Sigmoid};
 
-    const INPUT_COUNT: usize = 2;
-    const HIDDEN_LAYERS: usize = 5; // suggested maximum
-    const OUTPUT_COUNT: usize = 1;
-    const PRECISION: u8 = 2;   // epsilon as number of decimal places
-    let mut nn = fnn::FeedForward::<Sigmoid, INPUT_COUNT, HIDDEN_LAYERS, OUTPUT_COUNT>::new();
+    // const INPUT_COUNT: usize = 2;
+    // const HIDDEN_LAYERS: usize = 5; // suggested maximum
+    // const OUTPUT_COUNT: usize = 1;
+    // const PRECISION: u8 = 2;   // epsilon as number of decimal places
+    // let mut nn = fnn::FeedForward::<Sigmoid, INPUT_COUNT, HIDDEN_LAYERS, OUTPUT_COUNT>::new();
 
-    let training_data = [
-        ([0.0, 0.0], [0.0]),
-        ([0.0, 1.0], [1.0]),
-        ([1.0, 0.0], [1.0]),
-        ([1.0, 1.0], [0.0]),
-    ];
+    // let training_data = [
+    //     ([0.0, 0.0], [0.0]),
+    //     ([0.0, 1.0], [1.0]),
+    //     ([1.0, 0.0], [1.0]),
+    //     ([1.0, 1.0], [0.0]),
+    // ];
 
-    // repeat training until learned
-    loop {
-        // train
-        for (input, target) in &training_data {
-            let sv_input = SVector::from_column_slice(input);
-            let sv_target = SVector::from_column_slice(target);
-            nn.train(&sv_input, &sv_target, 0.1);
-        }
+    // // repeat training until learned
+    // loop {
+    //     // train
+    //     for (input, target) in &training_data {
+    //         let sv_input = SVector::from_column_slice(input);
+    //         let sv_target = SVector::from_column_slice(target);
+    //         nn.train(&sv_input, &sv_target, 0.1);
+    //     }
 
-        // check if it's learned
-        for (input, target) in &training_data {
-            let sv_input = SVector::from_column_slice(input);
-            // nn.train(&sv_input, &sv_target, 0.1);
-            let output = nn.forward(&sv_input);
-            if ! approx_equal(output[0], target[0], PRECISION)
-            {
-                continue // keep learning
-            }
-        }
-        // learning complete
-        return 
-    }
+    //     // check if it's learned
+    //     for (input, target) in &training_data {
+    //         let sv_input = SVector::from_column_slice(input);
+    //         // nn.train(&sv_input, &sv_target, 0.1);
+    //         let output = nn.forward(&sv_input);
+    //         if ! approx_equal(output[0], target[0], PRECISION)
+    //         {
+    //             continue // keep learning
+    //         }
+    //     }
+    //     // learning complete
+    //     return 
+    // }
 
-    fn approx_equal (a: f64, b: f64, dp: u8) -> bool {
-        let p = 10f64.powi(-(dp as i32));
-        (a-b).abs() < p
-    }
+    // fn approx_equal (a: f64, b: f64, dp: u8) -> bool {
+    //     let p = 10f64.powi(-(dp as i32));
+    //     (a-b).abs() < p
+    // }
 }
