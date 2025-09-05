@@ -32,11 +32,14 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // see how long it takes to learn XOR
     loop {
+        embassy_time::Timer::after_secs(10).await;
         info!("Learning XOR...");
+        embassy_time::Timer::after_secs(1).await;
         let start = embassy_time::Instant::now();
         rusty_robot_flight_controllers::learn_xor();        
         let end = embassy_time::Instant::now();
         let duration = end - start;
         info!("Learned XOR in {} s", duration.as_secs());
+        // info!("Learned XOR in {} us", duration.as_micros());
     }
 }

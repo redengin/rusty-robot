@@ -23,46 +23,53 @@ pub mod autonomous {
 /// use a neural network to learn XOR
 ///     profile how long it takes
 pub fn learn_xor() {
-    // use fnn::prelude::{SVector, Sigmoid};
 
-    // const INPUT_COUNT: usize = 2;
-    // const HIDDEN_LAYERS: usize = 5; // suggested maximum
-    // const OUTPUT_COUNT: usize = 1;
-    // const PRECISION: u8 = 2;   // epsilon as number of decimal places
-    // let mut nn = fnn::FeedForward::<Sigmoid, INPUT_COUNT, HIDDEN_LAYERS, OUTPUT_COUNT>::new();
+    use fnn::prelude::{SVector, Sigmoid};
 
-    // let training_data = [
-    //     ([0.0, 0.0], [0.0]),
-    //     ([0.0, 1.0], [1.0]),
-    //     ([1.0, 0.0], [1.0]),
-    //     ([1.0, 1.0], [0.0]),
-    // ];
+    const INPUT_COUNT: usize = 2;
+    const HIDDEN_LAYERS: usize = 5; // suggested maximum
+    const OUTPUT_COUNT: usize = 1;
+    const PRECISION: u8 = 1;   // epsilon as number of decimal places
+    let mut nn = fnn::FeedForward::<Sigmoid, INPUT_COUNT, HIDDEN_LAYERS, OUTPUT_COUNT>::new();
 
-    // // repeat training until learned
-    // loop {
-    //     // train
-    //     for (input, target) in &training_data {
-    //         let sv_input = SVector::from_column_slice(input);
-    //         let sv_target = SVector::from_column_slice(target);
-    //         nn.train(&sv_input, &sv_target, 0.1);
-    //     }
+    let training_data = [
+        ([0.0, 0.0], [0.0]),
+        ([0.0, 1.0], [1.0]),
+        ([1.0, 0.0], [1.0]),
+        ([1.0, 1.0], [0.0]),
+    ];
 
-    //     // check if it's learned
-    //     for (input, target) in &training_data {
-    //         let sv_input = SVector::from_column_slice(input);
-    //         // nn.train(&sv_input, &sv_target, 0.1);
-    //         let output = nn.forward(&sv_input);
-    //         if ! approx_equal(output[0], target[0], PRECISION)
-    //         {
-    //             continue // keep learning
-    //         }
-    //     }
-    //     // learning complete
-    //     return 
-    // }
+    // repeat training until learned
+    let mut training_count : u32 = 0;
+    'training: loop {
+        training_count += 1;
+        // train
+        for (input, target) in &training_data {
+            let sv_input = SVector::from_column_slice(input);
+            let sv_target = SVector::from_column_slice(target);
+            nn.train(&sv_input, &sv_target, 0.1);
+        }
 
-    // fn approx_equal (a: f64, b: f64, dp: u8) -> bool {
-    //     let p = 10f64.powi(-(dp as i32));
-    //     (a-b).abs() < p
-    // }
+        // check if it's learned
+        for (input, target) in &training_data {
+            let sv_input = SVector::from_column_slice(input);
+            // nn.train(&sv_input, &sv_target, 0.1);
+            let output = nn.forward(&sv_input);
+            if ! approx_equal(output[0], target[0], PRECISION)
+            {
+                continue 'training;
+            }
+            log::debug!("learn_xor {:?} -> {:?} [{:?}]", input, output, target);
+        }
+    
+        // learning complete
+        log::debug!("trained in {training_count} loops");
+        return 
+    }
+
+    fn approx_equal (a: f64, b: f64, dp: u8) -> bool {
+        use num_traits::pow::Pow;
+        let p = 10_f64.pow(-(dp as i32));
+        (a-b).abs() < p
+    }
 }
