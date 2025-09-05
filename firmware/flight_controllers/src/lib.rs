@@ -27,7 +27,8 @@ pub fn learn_xor() {
     use fnn::prelude::{SVector, Sigmoid};
 
     const INPUT_COUNT: usize = 2;
-    const HIDDEN_LAYERS: usize = 5; // suggested maximum
+    // const HIDDEN_LAYERS: usize = 5; // suggested maximum
+    const HIDDEN_LAYERS: usize = 2; // suggested maximum
     const OUTPUT_COUNT: usize = 1;
     const PRECISION: u8 = 1;   // epsilon as number of decimal places
     let mut nn = fnn::FeedForward::<Sigmoid, INPUT_COUNT, HIDDEN_LAYERS, OUTPUT_COUNT>::new();
@@ -59,7 +60,7 @@ pub fn learn_xor() {
             {
                 continue 'training;
             }
-            log::debug!("learn_xor {:?} -> {:?} [{:?}]", input, output, target);
+            // log::debug!("learn_xor {:?} -> {:?} [{:?}]", input, output, target);
         }
     
         // learning complete

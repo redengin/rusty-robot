@@ -31,8 +31,8 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(usb_logger_task(usb_driver)).unwrap();
 
     // see how long it takes to learn XOR
+    embassy_time::Timer::after_secs(10).await;
     loop {
-        embassy_time::Timer::after_secs(10).await;
         info!("Learning XOR...");
         embassy_time::Timer::after_secs(1).await;
         let start = embassy_time::Instant::now();
