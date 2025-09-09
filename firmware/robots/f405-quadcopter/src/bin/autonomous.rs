@@ -29,6 +29,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // start the logger
     use rusty_robot_f405_quadcopter::usb_logger_task;
     spawner.spawn(usb_logger_task(usb_driver)).unwrap();
+    info!("Logging started....");
 
     // create the vehicle (sensors/actuators)
     // let vehicle = ...
