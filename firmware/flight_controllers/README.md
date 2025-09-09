@@ -36,8 +36,6 @@ Self-characterizing systems autonomously adapt toward user intent
 
 Design
 --------------------------------------------------------------------------------
-
-
 ## Primitives
 * **self-characterized** - flight controller continuously characterizes the
    actuation (motors/propellers) impact on the vehicle
@@ -49,8 +47,6 @@ Design
 
 ## Safety Primitives
 * When **unable** to continue toward intent, the flight controller manages a soft descent
-
-### Design Guidance
 
 
 ### Background (Optional)
