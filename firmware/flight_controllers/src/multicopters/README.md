@@ -16,7 +16,7 @@ the flight controller needs only a
         * trajectory manuevers require the multicopter to change orientation.
           As these orientations may not allow the multicopter to hold position,
           the velocity component is used to manage flight dynamics during the
-          manuever toward the objective
+          manuever
 
 
 
