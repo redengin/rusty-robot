@@ -34,25 +34,10 @@ the user to expend effort into understanding and tuning the system.
 ### Safety Primitives
 * When **unable** to continue toward intent, the flight controller manages a soft descent
 
-### Background (Optional)
-* [Quadcopter Dynamics, Simulation, and Control](https://andrew.gibiansky.com/downloads/pdf/Quadcopter%20Dynamics,%20Simulation,%20and%20Control.pdf)
-    - good introduction to quadcopters physics
-* [Aircraft Control and Simulation](https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf)
-generalizes the control algorithm to a nonlinear curve fitting[^1] and suggests the use of a
-neural network[^2] as a robust solution (w/ mathematical analysis and simulation).
-    * requires computational power orders of magnitudes beyond the currently used hardware
 
-### Implementation Guidance
-What we need is a mathematically sound architecture that can be evaluated on current hardware.
-[PX4 Controller Architecture](https://docs.px4.io/main/en/flight_stack/controller_diagrams)
-is in use on current hardware and is based upon sound control-theory.
 
-Background
---------------------------------------------------------------------------------
-* [PX4 Architecture - Flight Stack](https://docs.px4.io/main/en/concept/architecture.html#flight-stack)
+Design
+================================================================================
+[Multicopter Design](../src/multicopters/docs/design.md)
 
-<!-- foot notes -->
-[^1]: [CHAPTER 9 ADAPTIVE CONTROL WITH APPLICATION TO MINIATURE AERIAL VEHICLES](https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf#page=678)
-
-[^2]: [9.3 NEURAL NETWORK ADAPTIVE CONTROL]()https://agorism.dev/book/eng/aircraft-control_johnson-lewis-stevens.pdf#page=682
 
