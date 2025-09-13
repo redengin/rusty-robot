@@ -24,17 +24,15 @@ the flight controller needs only a
 C4Component
 System_Boundary(b, "Flight Controller") {
     System_Boundary(b0, "Autonomous Mode") {
-        System(s0, "Position Control")
+        Component(s0, "Position Control")
     }
     System_Boundary(b1, "Direct Mode") {
-        System(s1, "Trajectory Control")
+        Component(s1, "Trajectory Control")
     }
-    Rel(s0, s1, "trajectory")
+    Rel(s0, s1, "<trajectory>")
 
-    System_Boundary(b2, "Attitude-Rate Control") {
-        System(s3, "Control")
-    }
-    Rel(s1, s3, "manuever")
+    Component(s3, "Attitude Control")
+    Rel(s1, s3, "<attitude, rate>")
 }
 ```
 </div>
