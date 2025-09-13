@@ -18,7 +18,26 @@ the flight controller needs only a
           the velocity component is used to manage the climb/descent along the
           trajectory
 
+<div style="background-color: ghostwhite">
 
+```mermaid
+C4Component
+System_Boundary(b, "Flight Controller") {
+    System_Boundary(b0, "Autonomous Control") {
+        System(s0, "Position Control")
+    }
+    System_Boundary(b1, "Direct Control") {
+        System(s1, "Trajectory Control")
+    }
+    Rel(s0, s1, "trajectory")
+
+    System_Boundary(b2, "Attitude-Rate Control") {
+        System(s3, "Control")
+    }
+    Rel(s1, s3, "manuever")
+}
+```
+</div>
 
 
 ### Background
