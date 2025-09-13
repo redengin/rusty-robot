@@ -23,10 +23,10 @@ the flight controller needs only a
 ```mermaid
 C4Component
 System_Boundary(b, "Flight Controller") {
-    System_Boundary(b0, "Autonomous Control") {
+    System_Boundary(b0, "Autonomous Mode") {
         System(s0, "Position Control")
     }
-    System_Boundary(b1, "Direct Control") {
+    System_Boundary(b1, "Direct Mode") {
         System(s1, "Trajectory Control")
     }
     Rel(s0, s1, "trajectory")
