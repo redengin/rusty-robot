@@ -2,11 +2,12 @@
 #![no_std]
 #![no_main]
 
-
 // upon panic, reset the chip
 use panic_reset as _;
 
 use log::*;
+
+use embassy_stm32::{spi, time::Hertz};
 
 // bind used interrupts to embassy runtime
 embassy_stm32::bind_interrupts!(pub struct Irqs {
@@ -32,6 +33,20 @@ async fn main(spawner: embassy_executor::Spawner) {
     info!("Initializing...");
 
     // initialize the IMU
+    let mut imu_spi_config = spi::Config::default();
+    imu_spi_config.frequency = Hertz(300_000);
+    imu_spi_config.mode = spi::MODE_3;
+    let spi = embassy_stm32::spi::Spi::new(
+        peripherals.SPI1,
+        peripherals.PA5,
+        peripherals.PA7,
+        peripherals.PA6,
+        peripherals.DMA2_CH3,
+        peripherals.DMA2_CH0,
+        imu_spi_config,
+    );
+    let imu = rusty_robot_drivers::imu::icm42688::ICM42688::new();
+
 
 
     // demonstrate logging

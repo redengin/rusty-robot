@@ -49,4 +49,5 @@ embassy-stm32 = { version = "*", features = [
     # "chrono"
 ] }
 
+rusty-robot-drivers = { path = "../../drivers" }
 rusty-robot-flight-controllers = { path = "../../flight_controllers" }
