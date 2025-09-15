@@ -1,6 +1,4 @@
 //! https://invensense.tdk.com/products/motion-tracking/6-axis/icm-42688-p/
-#![no_std]
-
 
 pub struct ICM42688 {
 

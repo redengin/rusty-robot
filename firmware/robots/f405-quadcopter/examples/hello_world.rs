@@ -1,7 +1,7 @@
 //! Demonstration of F405 hardware
-
 #![no_std]
 #![no_main]
+
 
 // upon panic, reset the chip
 use panic_reset as _;
