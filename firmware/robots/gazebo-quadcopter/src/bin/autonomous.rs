@@ -1,7 +1,7 @@
 //! Autonomous Drone (maneuvers to points in space)
 use embassy_time::{Duration, Ticker};
 use log::*;
-use rusty_robot_flight_controllers::autonomous;
+use rusty_robot_robots::systems;
 use std::env;
 
 use embassy_executor::Spawner;
@@ -38,7 +38,7 @@ async fn main(spawner: Spawner) {
     let drone = &mut *mk_static!(GazeboDrone, GazeboDrone::new(robot_name));
 
     // spawn the flight controller control
-    spawner.spawn(flight_controller(drone)).unwrap();
+    spawner.spawn(flight_controller(drone).unwrap());
 
     // operate the drone
     drone.run().await
@@ -50,7 +50,14 @@ async fn flight_controller(drone: &'static GazeboDrone) {
 
     let mut ticker = Ticker::every(Duration::from_hz(CYCLE_RATE_HZ));
     loop {
-        autonomous::step(drone);
+        // TODO autonomous::step(drone);
+        // let _ = <T as ImuReader>::get_data(drone);
+        // let _ = <T as Gps>::get_data(drone);
+        // <T as systems::QuadCopterMotors>::set_data(drone, velocities_pct);
+        let velocities_pct: [u8; 4] = [51, 51, 51, 51];
+        <GazeboDrone as systems::QuadCopterMotors>::set_data(drone, velocities_pct);
+
         ticker.next().await
     }
 }
+
