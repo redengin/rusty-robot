@@ -13,3 +13,8 @@ pub mod gps_traits {
         fn get_data(&self) -> Result<nmea::Nmea, &str>;
     }
 }
+
+
+// provide IMU drivers
+pub mod imu;
+    
