@@ -2,6 +2,8 @@
 
 // based upon https://github.com/bartslinger/zeroflight/blob/main/src/drivers/icm42688p.rs
 
+use embedded_hal_async::spi::ErrorType;
+
 pub const REG_WHO_AM_I: u8 = 0x75;
 pub const REG_PWR_MGMT0: u8 = 0x4E;
 pub const REG_FIFO_CONFIG: u8 = 0x16;
@@ -23,10 +25,13 @@ pub const REG_ACCEL_CONFIG_STATIC4: u8 = 0x05;
 pub async fn read_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
     spi_dev: &mut SPIBUS,
     reg: u8,
-) -> u8 {
+) -> Result<u8, <SPIBUS as ErrorType>::Error> {
     let mut buf = [reg | 0x80, 0x00];
-    spi_dev.transfer_in_place(&mut buf).await.ok();
-    buf[1]
+    match spi_dev.transfer_in_place(&mut buf).await
+    {
+        Ok(_) => return Ok(buf[1]),
+        Err(e) => return Err(e),
+    }
 }
 
 pub async fn write_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
