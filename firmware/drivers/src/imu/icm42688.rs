@@ -1,10 +1,13 @@
 //! https://invensense.tdk.com/products/motion-tracking/6-axis/icm-42688-p/
+//! [Datasheet](https://invensense.tdk.com/wp-content/uploads/2020/04/ds-000347_icm-42688-p-datasheet.pdf)
 
 // based upon https://github.com/bartslinger/zeroflight/blob/main/src/drivers/icm42688p.rs
 
-use embedded_hal_async::spi::ErrorType;
+use embedded_hal_async::spi::Error;
+use log::*;
 
 pub const REG_WHO_AM_I: u8 = 0x75;
+pub const VAL_WHO_AM_I: u8 = 0x47;
 pub const REG_PWR_MGMT0: u8 = 0x4E;
 pub const REG_FIFO_CONFIG: u8 = 0x16;
 pub const REG_FIFO_CONFIG1: u8 = 0x5F;
@@ -25,39 +28,114 @@ pub const REG_ACCEL_CONFIG_STATIC4: u8 = 0x05;
 pub async fn read_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
     spi_dev: &mut SPIBUS,
     reg: u8,
-) -> Result<u8, <SPIBUS as ErrorType>::Error> {
+) -> Result<u8, <SPIBUS as embedded_hal_async::spi::ErrorType>::Error> {
     let mut buf = [reg | 0x80, 0x00];
-    match spi_dev.transfer_in_place(&mut buf).await
-    {
-        Ok(_) => return Ok(buf[1]),
-        Err(e) => return Err(e),
-    }
+    return match spi_dev.transfer_in_place(&mut buf).await {
+        Ok(_) => Ok(buf[1]),
+        Err(e) => Err(e),
+    };
 }
 
 pub async fn write_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
     spi_dev: &mut SPIBUS,
     reg: u8,
     val: u8,
-) {
+) -> Result<(), <SPIBUS as embedded_hal_async::spi::ErrorType>::Error> {
     let mut buf = [reg, val];
-    spi_dev.transfer_in_place(&mut buf).await.ok();
+    return match spi_dev.transfer_in_place(&mut buf).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    };
 }
 
-pub async fn init<SPIBUS: embedded_hal_async::spi::SpiBus>(
-    _spi_dev: &mut SPIBUS,
-) {
-    // let whoami = read_register(spi_dev, REG_WHO_AM_I).await;
-    // if whoami != 0x47 {
-    //     defmt::error!("IMU not found");
-    //     panic!("IMU not found");
-    // }
+pub async fn config_gyro<SPIBUS: embedded_hal_async::spi::SpiBus>(spi_dev: &mut SPIBUS) -> bool {
+    const BANK1: u8 = 1;
+    if write_register(spi_dev, REG_REG_BANK_SEL, BANK1)
+        .await
+        .is_err()
+    {
+        debug!("Failed to select USER BANK 1");
+        return false;
+    }
+    match read_register(spi_dev, REG_GYRO_CONFIG_STATIC2).await {
+        Ok(_v) => (),
+        Err(e) => {
+            debug!("IMU spi error: {}", e.kind());
+        }
+    }
 
-    // // disable power on accel and gyro for configuration (see datasheet 12.9)
-    // write_register(spi_dev, REG_PWR_MGMT0, 0x00).await;
+    true
+    // write_register(spi_dev, REG_REG_BANK_SEL, 1).await;
     // Timer::after_micros(10).await;
-    // write_register(spi_dev, REG_FIFO_CONFIG, 0x80).await; // FIFO_CONFIG STOP-on-full
+    // let aaf_enable = read_register(spi_dev, REG_GYRO_CONFIG_STATIC2).await;
     // Timer::after_micros(10).await;
-    // write_register(spi_dev, REG_FIFO_CONFIG1, 0x07).await; // FIFO_CONFIG1 enable temp, accel, gyro
+    // write_register(spi_dev, REG_GYRO_CONFIG_STATIC2, aaf_enable & !0x03).await; // enable not and AAF
+    // Timer::after_micros(10).await;
+    // write_register(spi_dev, REG_GYRO_CONFIG_STATIC3, 6).await; // 258Hz gyro bandwith
+    // Timer::after_micros(10).await;
+    // write_register(spi_dev, REG_GYRO_CONFIG_STATIC4, 36).await; // 258Hz gyro bandwith
+    // Timer::after_micros(10).await;
+    // write_register(
+    //     spi_dev,
+    //     REG_GYRO_CONFIG_STATIC5,
+    //     (10 << 4) & 0xF0, /* | ((36 >> 8) & 0x0F) */
+    // )
+    // .await; // 258Hz gyro bandwith
+    // Timer::after_micros(10).await;
+}
+
+pub async fn init<SPIBUS: embedded_hal_async::spi::SpiBus>(spi_dev: &mut SPIBUS) -> bool {
+    match read_register(spi_dev, REG_WHO_AM_I).await {
+        Ok(v) => {
+            if v != VAL_WHO_AM_I {
+                debug!("Failed to recognize IMU [id:{}]", v);
+                return false;
+            }
+        }
+        Err(e) => {
+            debug!("IMU spi error: {}", e.kind());
+            return false;
+        }
+    }
+
+    // disable power on accel and gyro for configuration (see datasheet 12.9)
+    if write_register(spi_dev, REG_PWR_MGMT0, 0x00).await.is_err() {
+        debug!("Failed to disable IMU accel/gyro");
+        return false;
+    }
+    // Timer::after_micros(10).await;
+
+    // configure FIFO_MODE
+    {
+        const STOP_ON_FILL: u8 = 0x80;
+        if write_register(spi_dev, REG_FIFO_CONFIG, STOP_ON_FILL)
+            .await
+            .is_err()
+        {
+            debug!("Failed write to REG_FIFO_CONFIG");
+            return false;
+        }
+    }
+    // Timer::after_micros(10).await;
+
+    // configure FIFO writers
+    {
+        // const FIFO_RESUME_PARTIAL_RD: u8 = 1 << 6;
+        // const FIFO_WM_GT_TH: u8 = 1 << 5;
+        // const FIFO_HIRES_EN: u8 = 1 << 4;
+        // const FIFO_TMST_FSYNC_EN: u8 = 1 << 3;
+        const FIFO_TEMP_EN: u8 = 1 << 2;
+        const FIFO_GYRO_EN: u8 = 1 << 1;
+        const FIFO_ACCEL_EN: u8 = 1 << 0;
+        let fifo_config1 = FIFO_TEMP_EN | FIFO_GYRO_EN | FIFO_ACCEL_EN;
+        if write_register(spi_dev, REG_FIFO_CONFIG1, fifo_config1)
+            .await
+            .is_err()
+        {
+            debug!("Failed write to REG_FIFO_CONFIG1");
+            return false;
+        }
+    }
     // Timer::after_micros(10).await;
     // write_register(spi_dev, REG_INTF_CONFIG0, 0xF0).await; // big Endian, count records, hold last sample
     // Timer::after_micros(10).await;
@@ -115,9 +193,18 @@ pub async fn init<SPIBUS: embedded_hal_async::spi::SpiBus>(
     // write_register(spi_dev, REG_INTF_CONFIG1, (v & 0x3F) | 0x40).await;
     // Timer::after_micros(10).await;
 
-    // write_register(spi_dev, REG_PWR_MGMT0, 0x0F).await; // enable power on accel and gyro
-    //                                                     // min 200us sleep recommended
-    // Timer::after_micros(300).await;
+    // enable power on accel and gyro
+    match write_register(spi_dev, REG_PWR_MGMT0, 0x0F).await {
+        Ok(_) => {
+            // min 200us sleep recommended
+            // Timer::after_micros(300).await;
+            return true;
+        }
+        Err(e) => {
+            debug!("Failed to start IMU [spi error:{}]", e.kind());
+            return false;
+        }
+    }
 }
 
 // pub async fn get_fifo_count(

@@ -786,6 +786,7 @@ name = "rusty-robot-drivers"
 version = "0.1.0"
 dependencies = [
  "embedded-hal-async",
+ "log",
  "nmea",
 ]
 
