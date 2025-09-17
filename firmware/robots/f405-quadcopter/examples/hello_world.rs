@@ -36,7 +36,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     let mut imu_spi_config = spi::Config::default();
     imu_spi_config.frequency = Hertz(300_000);
     imu_spi_config.mode = spi::MODE_3;
-    let spi = embassy_stm32::spi::Spi::new(
+    let mut imu_spi = embassy_stm32::spi::Spi::new(
         peripherals.SPI1,
         peripherals.PA5,
         peripherals.PA7,
@@ -45,7 +45,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         peripherals.DMA2_CH0,
         imu_spi_config,
     );
-    let imu = rusty_robot_drivers::imu::icm42688::ICM42688::new();
+    let _ = rusty_robot_drivers::imu::icm42688::read_register(&mut imu_spi, rusty_robot_drivers::imu::icm42688::REG_WHO_AM_I);
 
 
 

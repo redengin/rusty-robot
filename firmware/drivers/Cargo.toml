@@ -5,4 +5,6 @@ license = "Apache-2.0"
 edition = "2024"
 
 [dependencies]
+embedded-hal-async = "*"
+# embedded-hal-bus = { version = "*", features = ["async"] }
 nmea = { version = "*", default-features = false } # GPS sentence parsing support

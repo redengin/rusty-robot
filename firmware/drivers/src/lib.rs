@@ -14,7 +14,6 @@ pub mod gps_traits {
     }
 }
 
-
 // provide IMU drivers
 pub mod imu;
     
