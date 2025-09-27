@@ -32,52 +32,61 @@ pub fn init() -> embassy_stm32::Peripherals {
 }
 
 pub mod usb {
+    const EP_OUT_BUFFER_SIZE: usize = 10 * 1024;
     // provide a static so that usb_driver can be used in threads
-    pub static EP_OUT_BUFFER: static_cell::StaticCell<[u8; 256]> = static_cell::StaticCell::new();
-}
+    pub static EP_OUT_BUFFER: static_cell::StaticCell<[u8; EP_OUT_BUFFER_SIZE]> =
+        static_cell::StaticCell::new();
 
-/// log support for USB serial
-#[embassy_executor::task]
-pub async fn usb_logger_task(
-    driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>,
-) {
-    const USB_LOG_BUFFER_SZ: usize = 1024;
+    /// logging support for USB serial using embassy task
+    /// use `socat - /dev/ttyACM*` to read the stream
+    #[embassy_executor::task]
+    pub async fn logger_task(
+        driver: embassy_stm32::usb::Driver<'static, embassy_stm32::peripherals::USB_OTG_FS>,
+    ) {
+        // create the LOGGER
+        use embassy_usb_logger::DummyHandler;
+        static LOGGER: embassy_usb_logger::UsbLogger<EP_OUT_BUFFER_SIZE, DummyHandler> =
+            embassy_usb_logger::UsbLogger::with_custom_style(log_style);
+        // provide the global logger interface
+        unsafe {
+            // FIXME choose log level(s) from environment
+            let _ = ::log::set_logger_racy(&LOGGER)
+                .map(|()| log::set_max_level_racy(log::LevelFilter::Debug));
+        }
+        // run the logger service
+        LOGGER
+            .run(&mut ::embassy_usb_logger::LoggerState::new(), driver)
+            .await;
 
-    // create the LOGGER
-    use embassy_usb_logger::DummyHandler;
-    static LOGGER: embassy_usb_logger::UsbLogger<USB_LOG_BUFFER_SZ, DummyHandler> =
-        embassy_usb_logger::UsbLogger::with_custom_style(log_style);
-    // provide the global logger interface
-    unsafe {
-        // FIXME choose log level(s) from environment
-        let _ = ::log::set_logger_racy(&LOGGER)
-            .map(|()| log::set_max_level_racy(log::LevelFilter::Debug));
-    }
-    // run the logger service
-    LOGGER
-        .run(&mut ::embassy_usb_logger::LoggerState::new(), driver)
-        .await;
-
-    // provide styling for log messages
-    // TODO use a standardized style
-    fn log_style(record: &log::Record, writer: &mut embassy_usb_logger::Writer<USB_LOG_BUFFER_SZ>) {
-        use core::fmt::Write;
-        let level = record.level().as_str();
-        let target = record.target();
-        // log level priority is descending
-        if (record.level() < log::LevelFilter::Debug) || record.file().is_none() {
-            write!(writer, "{level:>5}:{target}:{}\n", record.args()).unwrap();
-        } else {
-            // provide extra info for debug and below
-            let file = match record.file() {
-                Some(v) => v, 
-                None => ""
-            };
-            let line = match record.line() {
-                Some(v) => v, 
-                None => 0
-            };
-            write!(writer, "{level:>5}:{target}:{} [{file}:{line}]\n", record.args()).unwrap();
+        // provide styling for log messages
+        // TODO use a standardized style
+        fn log_style(
+            record: &log::Record,
+            writer: &mut embassy_usb_logger::Writer<EP_OUT_BUFFER_SIZE>,
+        ) {
+            use core::fmt::Write;
+            let level = record.level().as_str();
+            let target = record.target();
+            // log level priority is descending
+            if (record.level() < log::LevelFilter::Debug) || record.file().is_none() {
+                write!(writer, "{level:>5}:{target}:{}\n", record.args()).unwrap();
+            } else {
+                // provide extra info for debug and below
+                let file = match record.file() {
+                    Some(v) => v,
+                    None => "",
+                };
+                let line = match record.line() {
+                    Some(v) => v,
+                    None => 0,
+                };
+                write!(
+                    writer,
+                    "{level:>5}:{target}:{} [{file}:{line}]\n",
+                    record.args()
+                )
+                .unwrap();
+            }
         }
     }
 }
