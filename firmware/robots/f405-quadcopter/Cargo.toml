@@ -49,5 +49,6 @@ embassy-stm32 = { version = "*", features = [
     # "chrono"
 ] }
 
+embedded-hal-bus = { version="*", default-features = false, features = ["async"]}
 rusty-robot-drivers = { path = "../../drivers" }
 rusty-robot-flight-controllers = { path = "../../flight_controllers" }

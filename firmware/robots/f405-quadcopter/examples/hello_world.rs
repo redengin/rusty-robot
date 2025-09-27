@@ -2,7 +2,6 @@
 #![no_std]
 #![no_main]
 
-use embassy_stm32::time::Hertz;
 // upon panic, reset the chip
 use panic_reset as _;
 
@@ -33,32 +32,29 @@ async fn main(spawner: embassy_executor::Spawner) {
     // initialize the IMU
     // pin mapping per https://raw.githubusercontent.com/betaflight/unified-targets/master/configs/default/DAKE-DAKEFPVF405.config
     // TODO create a pre-processor to digest the betaflight maps into rust code
-    let mut imu_spi_config = embassy_stm32::spi::Config::default();
-    imu_spi_config.frequency = Hertz(300_000);
-    let mut imu_spi = embassy_stm32::spi::Spi::new(
+    let spi1_config = embassy_stm32::spi::Config::default();
+    let spi1 = embassy_stm32::spi::Spi::new(
         peripherals.SPI1,
         peripherals.PA5,
         peripherals.PA7,
         peripherals.PA6,
         peripherals.DMA2_CH3,
         peripherals.DMA2_CH0,
-        imu_spi_config,
+        spi1_config,
     );
     use embassy_stm32::gpio;
-    let mut cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
-    // let cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
-    let _ = rusty_robot_drivers::imu::icm42688::read_register(
-        &mut imu_spi,
-        rusty_robot_drivers::imu::icm42688::REG_WHO_AM_I,
-    );
+    // NOTE: my chip requires that CS toggle - holding CS LOW results devolves into reads of 0xFF
+    // let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
+    let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
+    let mut imu_dev = embedded_hal_bus::spi::ExclusiveDevice::new_no_delay(
+        spi1, imu_cs).unwrap();
 
     // demonstrate logging
     embassy_time::Timer::after_millis(1000).await;
-    let mut r = 0x1d;
+    let r = 0x75;
     loop {
-        cs.set_low();
         match rusty_robot_drivers::imu::icm42688::read_register(
-            &mut imu_spi,
+            &mut imu_dev,
             r,
         )
         .await
@@ -66,8 +62,6 @@ async fn main(spawner: embassy_executor::Spawner) {
             Ok(v) => debug!("read 0x{r:x} = 0x{v:x}"),
             Err(_) => error!("failed to read register"),
         };
-        // r = if r < 0x76 {r+1} else {0x11};
-        cs.set_high();
 
         embassy_time::Timer::after_millis(1000).await;
     }
