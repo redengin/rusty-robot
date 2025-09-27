@@ -29,7 +29,7 @@ pub async fn read_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
     spi_dev: &mut SPIBUS,
     reg: u8,
 ) -> Result<u8, <SPIBUS as embedded_hal_async::spi::ErrorType>::Error> {
-    let mut buf = [reg | 0x80, 0x00];
+    let mut buf = [reg | 0x80, 0xff];
     return match spi_dev.transfer_in_place(&mut buf).await {
         Ok(_) => Ok(buf[1]),
         Err(e) => Err(e),
