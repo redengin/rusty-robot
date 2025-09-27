@@ -2,6 +2,7 @@
 #![no_std]
 #![no_main]
 
+use embassy_stm32::time::Hertz;
 // upon panic, reset the chip
 use panic_reset as _;
 
@@ -32,7 +33,8 @@ async fn main(spawner: embassy_executor::Spawner) {
     // initialize the IMU
     // pin mapping per https://raw.githubusercontent.com/betaflight/unified-targets/master/configs/default/DAKE-DAKEFPVF405.config
     // TODO create a pre-processor to digest the betaflight maps into rust code
-    let imu_spi_config = embassy_stm32::spi::Config::default();
+    let mut imu_spi_config = embassy_stm32::spi::Config::default();
+    imu_spi_config.frequency = Hertz(300_000);
     let mut imu_spi = embassy_stm32::spi::Spi::new(
         peripherals.SPI1,
         peripherals.PA5,
@@ -43,16 +45,18 @@ async fn main(spawner: embassy_executor::Spawner) {
         imu_spi_config,
     );
     use embassy_stm32::gpio;
-    // let cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
-    let cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
+    let mut cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
+    // let cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
     let _ = rusty_robot_drivers::imu::icm42688::read_register(
         &mut imu_spi,
         rusty_robot_drivers::imu::icm42688::REG_WHO_AM_I,
     );
 
     // demonstrate logging
-    let mut r = 0x75;
+    embassy_time::Timer::after_millis(1000).await;
+    let mut r = 0x1d;
     loop {
+        cs.set_low();
         match rusty_robot_drivers::imu::icm42688::read_register(
             &mut imu_spi,
             r,
@@ -62,8 +66,9 @@ async fn main(spawner: embassy_executor::Spawner) {
             Ok(v) => debug!("read 0x{r:x} = 0x{v:x}"),
             Err(_) => error!("failed to read register"),
         };
-        r = if r < 0x76 {r+1} else {0x75};
+        // r = if r < 0x76 {r+1} else {0x11};
+        cs.set_high();
 
-        embassy_time::Timer::after_millis(100).await;
+        embassy_time::Timer::after_millis(1000).await;
     }
 }
