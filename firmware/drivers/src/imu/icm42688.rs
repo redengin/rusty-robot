@@ -3,8 +3,8 @@
 
 use log::*;
 
+const FLAG_READ_REG: u8 = 0x80;
 pub const REG_WHO_AM_I: u8 = 0x75;
-pub const VAL_WHO_AM_I: u8 = 0x47;
 pub const REG_PWR_MGMT0: u8 = 0x4E;
 pub const REG_FIFO_CONFIG: u8 = 0x16;
 pub const REG_FIFO_CONFIG1: u8 = 0x5F;
@@ -22,42 +22,83 @@ pub const REG_ACCEL_CONFIG_STATIC2: u8 = 0x03;
 pub const REG_ACCEL_CONFIG_STATIC3: u8 = 0x04;
 pub const REG_ACCEL_CONFIG_STATIC4: u8 = 0x05;
 
-// pub async fn read_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
-//     spi_dev: &mut SPIBUS,
-//     reg: u8,
-// ) -> Result<u8, <SPIBUS as embedded_hal_async::spi::ErrorType>::Error> {
-//     let mut buf = [reg | 0x80, 0xff];
-//     return match spi_dev.transfer_in_place(&mut buf).await {
-//         Ok(_) => Ok(buf[1]),
-//         Err(e) => Err(e),
-//     };
-// }
+pub const VAL_WHO_AM_I: u8 = 0x47;
 
-// pub async fn read_register<SPIBUS: embedded_hal_async::spi::SpiDevice>(
 pub async fn read_register<SPIDEVICE: embedded_hal_async::spi::SpiDevice>(
     spi_dev: &mut SPIDEVICE,
     reg: u8,
-) -> Result<u8, bool> {
-    let mut buf = [reg | 0x80, 0xff];
+) -> Result<u8, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error> {
+    let mut buf = [(FLAG_READ_REG | reg), 0xff];
 
     return match spi_dev.transfer_in_place(&mut buf).await {
         Ok(_) => Ok(buf[1]),
-        // Err(e) => Err(e),
-        Err(_) => Err(false),
+        Err(e) => Err(e),
     };
 }
 
-// pub async fn write_register<SPIBUS: embedded_hal_async::spi::SpiBus>(
-//     spi_dev: &mut SPIBUS,
-//     reg: u8,
-//     val: u8,
-// ) -> Result<(), <SPIBUS as embedded_hal_async::spi::ErrorType>::Error> {
-//     let mut buf = [reg, val];
-//     return match spi_dev.transfer_in_place(&mut buf).await {
-//         Ok(_) => Ok(()),
-//         Err(e) => Err(e),
-//     };
+pub async fn write_register<SPIDEVICE: embedded_hal_async::spi::SpiDevice>(
+    spi_dev: &mut SPIDEVICE,
+    reg: u8,
+    val: u8,
+) -> Result<(), <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error> {
+    let mut buf = [reg, val];
+    return match spi_dev.transfer_in_place(&mut buf).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    };
+}
+
+pub async fn init<SPIDEVICE: embedded_hal_async::spi::SpiDevice>(
+    spi_dev: &mut SPIDEVICE,
+) -> Result<(), <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error> {
+
+    // https://invensense.tdk.com/wp-content/uploads/2020/04/ds-000347_icm-42688-p-datasheet.pdf#page=77
+    match write_register(spi_dev, REG_PWR_MGMT0, 0x0F).await
+    {
+        Ok(()) => { /* FIXME wait 200us */ },
+        Err(e) => return Err(e),
+    }
+
+    Ok(())
+}
+ 
+pub struct ImuData {
+    pub accelerometer: Option<crate::imu_traits::Vector3>,
+    pub gyroscope: Option<crate::imu_traits::Vector3>,
+}
+
+pub async fn read_imu<SPIDEVICE: embedded_hal_async::spi::SpiDevice>(
+    spi_dev: &mut SPIDEVICE,
+) -> Result<ImuData, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error> {
+    // burst read all the data
+    let mut buf: [u8; 13] = [0xff; 13];
+    const REG_START: u8 = 0x1f;
+    buf[0] = FLAG_READ_REG | REG_START;
+
+    let result = spi_dev.transfer_in_place(&mut buf).await;
+    if result.is_err() {
+        return Err(result.unwrap_err());
+    }
+
+    debug!("read_imu [{:?}]", buf);
+
+    Ok(ImuData {
+        accelerometer: None,    // FIXME
+        gyroscope: None,        // FIXME
+    })
+}
+
+/// https://invensense.tdk.com/wp-content/uploads/2020/04/ds-000347_icm-42688-p-datasheet.pdf#page=67
+// fn rawtemp_to_c(msb: u8, lsb: u8) -> f32
+// {
+//     let val = (msb as u16) << 8 | (lsb as u16);
+//     (val as f32 / 132.48) + 25.0
 // }
+
+
+
+
+
 
 // pub async fn config_gyro<SPIBUS: embedded_hal_async::spi::SpiBus>(spi_dev: &mut SPIBUS) -> bool {
 //     const BANK1: u8 = 1;

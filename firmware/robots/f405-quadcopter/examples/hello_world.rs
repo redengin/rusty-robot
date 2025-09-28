@@ -48,11 +48,13 @@ async fn main(spawner: embassy_executor::Spawner) {
     let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
     let mut imu_dev = embedded_hal_bus::spi::ExclusiveDevice::new_no_delay(
         spi1, imu_cs).unwrap();
+    // initialize the IMU
+    let _ = rusty_robot_drivers::imu::icm42688::init(&mut imu_dev).await;
 
     // demonstrate logging
     embassy_time::Timer::after_millis(1000).await;
-    let r = 0x75;
     loop {
+        let r = 0x75;
         match rusty_robot_drivers::imu::icm42688::read_register(
             &mut imu_dev,
             r,
@@ -60,7 +62,16 @@ async fn main(spawner: embassy_executor::Spawner) {
         .await
         {
             Ok(v) => debug!("read 0x{r:x} = 0x{v:x}"),
-            Err(_) => error!("failed to read register"),
+            Err(e) => error!("failed to read register [{e}]"),
+        };
+
+        match rusty_robot_drivers::imu::icm42688::read_imu(
+            &mut imu_dev,
+        )
+        .await
+        {
+            Ok(v) => {}, //debug!("temp: {} C", v.temperature_c),
+            Err(e) => error!("failed to read register [{e}]"),
         };
 
         embassy_time::Timer::after_millis(1000).await;
