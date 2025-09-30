@@ -29,7 +29,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(rusty_robot_f405_quadcopter::usb::logger_task(usb_driver)).unwrap();
     info!("Initializing...");
 
-    // initialize the IMU
+    // initialize the IMU Bus/Device
     // pin mapping per https://raw.githubusercontent.com/betaflight/unified-targets/master/configs/default/DAKE-DAKEFPVF405.config
     // TODO create a pre-processor to digest the betaflight maps into rust code
     let spi1_config = embassy_stm32::spi::Config::default();
@@ -49,30 +49,30 @@ async fn main(spawner: embassy_executor::Spawner) {
     let mut imu_dev = embedded_hal_bus::spi::ExclusiveDevice::new_no_delay(
         spi1, imu_cs).unwrap();
     // initialize the IMU
-    let _ = rusty_robot_drivers::imu::icm42688::init(&mut imu_dev).await;
+    let imu = rusty_robot_drivers::imu::icm42688::ICM42688::new(&mut imu_dev);
 
     // demonstrate logging
     embassy_time::Timer::after_millis(1000).await;
     loop {
-        let r = 0x75;
-        match rusty_robot_drivers::imu::icm42688::read_register(
-            &mut imu_dev,
-            r,
-        )
-        .await
-        {
-            Ok(v) => debug!("read 0x{r:x} = 0x{v:x}"),
-            Err(e) => error!("failed to read register [{e}]"),
-        };
+        // let r = 0x75;
+        // match rusty_robot_drivers::imu::icm42688::read_register(
+        //     &mut imu_dev,
+        //     r,
+        // )
+        // .await
+        // {
+        //     Ok(v) => debug!("read 0x{r:x} = 0x{v:x}"),
+        //     Err(e) => error!("failed to read register [{e}]"),
+        // };
 
-        match rusty_robot_drivers::imu::icm42688::read_imu(
-            &mut imu_dev,
-        )
-        .await
-        {
-            Ok(v) => {}, //debug!("temp: {} C", v.temperature_c),
-            Err(e) => error!("failed to read register [{e}]"),
-        };
+        // match rusty_robot_drivers::imu::icm42688::read_imu(
+        //     &mut imu_dev,
+        // )
+        // .await
+        // {
+        //     Ok(_v) => {}, //debug!("temp: {} C", v.temperature_c),
+        //     Err(e) => error!("failed to read register [{e}]"),
+        // };
 
         embassy_time::Timer::after_millis(1000).await;
     }
