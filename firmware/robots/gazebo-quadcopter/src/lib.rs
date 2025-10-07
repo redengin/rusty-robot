@@ -26,18 +26,16 @@ impl GazeboDrone {
     pub fn new(robot_name: &String) -> Self {
         GazeboDrone {
             imu_topic: format!(
-                "/world/openworld/model/{}/link/base_link/sensor/imu_sensor/imu",
-                robot_name
+                "/world/openworld/model/{robot_name}/link/base_link/sensor/imu_sensor/imu"
             ),
             imu_signal: Signal::new(),
 
             gps_topic: format!(
-                "/world/openworld/model/{}/link/base_link/sensor/navsat_sensor/navsat",
-                robot_name
+                "/world/openworld/model/{robot_name}/link/base_link/sensor/navsat_sensor/navsat",
             ),
             gps_signal: Signal::new(),
 
-            motors_topic: format!("/{}/command/motor_speed", robot_name),
+            motors_topic: format!("/{robot_name}/command/motor_speed"),
             motors_signal: Signal::new(),
         }
     }
@@ -52,37 +50,22 @@ impl GazeboDrone {
                 log::trace!("imu msg {:?}", msg.entity_name);
 
                 // convert the message into an IMU state
-                let mut imu_data = ImuData {
+                let imu_data = ImuData {
+                    accelerometer: Some(imu_traits::Vector3 {
+                        x: msg.linear_acceleration.x as f32,
+                        y: msg.linear_acceleration.y as f32,
+                        z: msg.linear_acceleration.z as f32,
+                    }),
+                    gyroscope: Some(imu_traits::Vector3{
+                        x: msg.angular_velocity.x as f32,
+                        y: msg.angular_velocity.y as f32,
+                        z: msg.angular_velocity.z as f32,
+                    }),
                     ..Default::default()
                 };
-                // accelerometer
-                if let Some(data) = msg.linear_acceleration.as_ref() {
-                    imu_data.accelerometer = Some(imu_traits::Vector3 {
-                        x: data.x as f32,
-                        y: data.y as f32,
-                        z: data.z as f32,
-                    })
-                }
-                // gyroscope
-                if let Some(data) = msg.angular_velocity.as_ref() {
-                    imu_data.gyroscope = Some(imu_traits::Vector3 {
-                        x: data.x as f32,
-                        y: data.y as f32,
-                        z: data.z as f32,
-                    })
-                }
-                // orientation
-                if let Some(data) = msg.orientation.as_ref() {
-                    imu_data.quaternion = Some(imu_traits::Quaternion {
-                        w: data.w as f32,
-                        x: data.x as f32,
-                        y: data.y as f32,
-                        z: data.z as f32,
-                    })
-                }
 
                 // publish the update
-                self.imu_signal.signal(imu_data.clone());
+                self.imu_signal.signal(imu_data);
             })
         );
 
