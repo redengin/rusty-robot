@@ -3,7 +3,13 @@
 #![no_main]
 
 // upon panic, reset the chip
-use panic_reset as _;
+// use panic_reset as _;
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    error!("PANIC: {}", info);
+    cortex_m::asm::delay(1_000_000);
+    cortex_m::peripheral::SCB::sys_reset();
+}
 
 use log::*;
 
@@ -26,7 +32,9 @@ async fn main(spawner: embassy_executor::Spawner) {
         embassy_stm32::usb::Config::default(),
     );
     // start the logger
-    spawner.spawn(rusty_robot_f405_quadcopter::usb::logger_task(usb_driver)).unwrap();
+    spawner
+        .spawn(rusty_robot_f405_quadcopter::usb::logger_task(usb_driver))
+        .unwrap();
     info!("Initializing...");
 
     // initialize the IMU Bus/Device
@@ -46,14 +54,29 @@ async fn main(spawner: embassy_executor::Spawner) {
     // NOTE: my chip requires that CS toggle - holding CS LOW results devolves into reads of 0xFF
     // let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
     let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
-    let mut imu_dev = embedded_hal_bus::spi::ExclusiveDevice::new_no_delay(
-        spi1, imu_cs).unwrap();
-    // initialize the IMU
-    let imu = rusty_robot_drivers::imu::icm42688::ICM42688::new(&mut imu_dev);
+    let mut imu_dev = embedded_hal_bus::spi::ExclusiveDevice::new_no_delay(spi1, imu_cs).unwrap();
+    // create the IMU driver
+    let mut imu = rusty_robot_drivers::imu::icm42688::ICM42688::new(&mut imu_dev).await.unwrap();
 
-    // demonstrate logging
+    // demonstrate hardware (IMU and GPS)
     embassy_time::Timer::after_millis(1000).await;
+    // imu.set_power_mode(rusty_robot_drivers::imu::icm42688::PowerMode::LowPower).await.unwrap();
+    imu.set_power_mode(rusty_robot_drivers::imu::icm42688::PowerMode::LowNoise).await.unwrap();
     loop {
+        debug!("reading imu....");
+        match imu.read_imu().await {
+            Ok(v) => info!("accel: {:?}, gyro: [{:?}", v.accelerometer.unwrap(), v.gyroscope.unwrap()),
+            Err(e)  => error!("imu spi error [{:?}", e),
+        }
+        //     Some(icm42688) => {
+        //         // imu.read_imu().await;
+        //         // let imu = imu.take(); 
+        //         // match imu.read_imu().await {
+        //         // Ok(data) => {}
+        //         // Err(e) => error!("failed to read imu [{e}]"),
+        //     },
+        //     None => error!("imu not found"),
+        // }
         // let r = 0x75;
         // match rusty_robot_drivers::imu::icm42688::read_register(
         //     &mut imu_dev,

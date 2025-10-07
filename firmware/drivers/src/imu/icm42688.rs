@@ -8,8 +8,8 @@ use crate::imu_traits::Vector3;
 const FLAG_READ_REG: u8 = 0x80;
 pub const REG_WHO_AM_I: u8 = 0x75;
 pub const REG_DEVICE_CONFIG: u8 = 0x11;
-
 pub const REG_PWR_MGMT0: u8 = 0x4E;
+
 pub const REG_FIFO_CONFIG: u8 = 0x16;
 pub const REG_FIFO_CONFIG1: u8 = 0x5F;
 pub const REG_INTF_CONFIG0: u8 = 0x4C;
@@ -93,18 +93,24 @@ pub enum AccelScale {
     _16 = 16,
 }
 
-impl<SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'static, SPIDEVICE> {
-    pub async fn new(spi_dev: &'static mut SPIDEVICE) -> Option<Self> {
+pub enum PowerMode {
+    Off = 0,           // disables GYROSCOPE and ACCELEROMETER
+    LowPower = 0b1110, // LN GYROSCOPE, LP ACCELEROMETER
+    LowNoise = 0b1111, // LN GYROSCOPE, LN ACCELEROMETER
+}
+
+impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> {
+    pub async fn new(spi_dev: &'a mut SPIDEVICE) -> Result<Self, &'a str> {
         // verify the chip
         match read_register(spi_dev, REG_WHO_AM_I).await {
             Ok(v) => {
                 if v != VAL_WHO_AM_I {
-                    return None;
+                    return Err("invalid chip id");
                 }
             }
             Err(e) => {
                 error!("spi failed [{:?}]", e);
-                return None;
+                return Err("spi bus failed");
             }
         }
 
@@ -114,7 +120,7 @@ impl<SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'static, SPIDEVICE>
             Ok(_) => { /* TODO wait 1ms */ }
             Err(e) => {
                 error!("spi failed [{:?}]", e);
-                return None;
+                return Err("spi bus failed");
             }
         }
         // initialize per expected reset values
@@ -136,15 +142,25 @@ impl<SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'static, SPIDEVICE>
             }
         }
 
-        Some(ICM42688 {
+        Ok(ICM42688 {
             spi_dev: spi_dev,
             gyro_scale: gyro_scale,
             accel_scale: accel_scale,
         })
     }
 
+    pub async fn set_power_mode(
+        &mut self,
+        mode: PowerMode,
+    ) -> Result<(), <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error> {
+        return match write_register(self.spi_dev, REG_PWR_MGMT0, mode as u8).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn read_imu(
-        self,
+        &mut self,
     ) -> Result<crate::imu_traits::ImuData, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error>
     {
         // burst read all the data
@@ -160,12 +176,12 @@ impl<SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'static, SPIDEVICE>
         debug!("read_imu [{:?}]", buf);
 
         Ok(crate::imu_traits::ImuData {
-            accelerometer: Self::rawaccel_to_mps2(&self, &buf[1..6]),
-            gyroscope: Self::rawgyro_to_dps(&self, &buf[7..12]),
+            accelerometer: Self::rawaccel_to_mps2(&self, buf[1..7].try_into().unwrap()),
+            gyroscope: Self::rawgyro_to_dps(&self, buf[7..13].try_into().unwrap()),
             ..Default::default()
         })
     }
-    fn rawaccel_to_mps2(&self, buf: &[u8]) -> Option<Vector3> {
+    fn rawaccel_to_mps2(&self, buf: &[u8; 6]) -> Option<Vector3> {
         let x16 = (((buf[0] as u16) << 8) | (buf[1] as u16)) as i16;
         let y16 = (((buf[2] as u16) << 8) | (buf[3] as u16)) as i16;
         let z16 = (((buf[4] as u16) << 8) | (buf[5] as u16)) as i16;
@@ -177,7 +193,7 @@ impl<SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'static, SPIDEVICE>
             z: (z16 as f32) * (self.accel_scale as f32) * MPS2_PER_G / (i16::MAX as f32),
         })
     }
-    fn rawgyro_to_dps(&self, buf: &[u8]) -> Option<Vector3> {
+    fn rawgyro_to_dps(&self, buf: &[u8; 6]) -> Option<Vector3> {
         let x16 = (((buf[0] as u16) << 8) | (buf[1] as u16)) as i16;
         let y16 = (((buf[2] as u16) << 8) | (buf[3] as u16)) as i16;
         let z16 = (((buf[4] as u16) << 8) | (buf[5] as u16)) as i16;
