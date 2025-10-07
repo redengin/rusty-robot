@@ -60,43 +60,13 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // demonstrate hardware (IMU and GPS)
     embassy_time::Timer::after_millis(1000).await;
-    // imu.set_power_mode(rusty_robot_drivers::imu::icm42688::PowerMode::LowPower).await.unwrap();
-    imu.set_power_mode(rusty_robot_drivers::imu::icm42688::PowerMode::LowNoise).await.unwrap();
+    imu.set_power_mode(rusty_robot_drivers::imu::icm42688::PowerMode::Enabled).await.unwrap();
     loop {
         debug!("reading imu....");
         match imu.read_imu().await {
             Ok(v) => info!("accel: {:?}, gyro: [{:?}", v.accelerometer.unwrap(), v.gyroscope.unwrap()),
             Err(e)  => error!("imu spi error [{:?}", e),
         }
-        //     Some(icm42688) => {
-        //         // imu.read_imu().await;
-        //         // let imu = imu.take(); 
-        //         // match imu.read_imu().await {
-        //         // Ok(data) => {}
-        //         // Err(e) => error!("failed to read imu [{e}]"),
-        //     },
-        //     None => error!("imu not found"),
-        // }
-        // let r = 0x75;
-        // match rusty_robot_drivers::imu::icm42688::read_register(
-        //     &mut imu_dev,
-        //     r,
-        // )
-        // .await
-        // {
-        //     Ok(v) => debug!("read 0x{r:x} = 0x{v:x}"),
-        //     Err(e) => error!("failed to read register [{e}]"),
-        // };
-
-        // match rusty_robot_drivers::imu::icm42688::read_imu(
-        //     &mut imu_dev,
-        // )
-        // .await
-        // {
-        //     Ok(_v) => {}, //debug!("temp: {} C", v.temperature_c),
-        //     Err(e) => error!("failed to read register [{e}]"),
-        // };
-
         embassy_time::Timer::after_millis(1000).await;
     }
 }
