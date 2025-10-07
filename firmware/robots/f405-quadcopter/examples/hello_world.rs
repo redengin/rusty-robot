@@ -3,13 +3,13 @@
 #![no_main]
 
 // upon panic, reset the chip
-// use panic_reset as _;
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    error!("PANIC: {}", info);
-    cortex_m::asm::delay(1_000_000);
-    cortex_m::peripheral::SCB::sys_reset();
-}
+use panic_reset as _;
+// #[panic_handler]
+// fn panic(info: &core::panic::PanicInfo) -> ! {
+//     error!("PANIC: {}", info);
+//     cortex_m::asm::delay(1_000_000);
+//     cortex_m::peripheral::SCB::sys_reset();
+// }
 
 use log::*;
 
@@ -37,7 +37,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         .unwrap();
     info!("Initializing...");
 
-    // initialize the IMU Bus/Device
+    // initialize spi IMU
     // pin mapping per https://raw.githubusercontent.com/betaflight/unified-targets/master/configs/default/DAKE-DAKEFPVF405.config
     // TODO create a pre-processor to digest the betaflight maps into rust code
     let spi1_config = embassy_stm32::spi::Config::default();
