@@ -5,7 +5,6 @@ use rusty_robot_drivers::{gps_traits, nmea};
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
 use rusty_robot_robots::systems::QuadCopterMotors;
-use std::f64::consts::PI;
 
 pub struct GazeboDrone {
     pub imu_topic: String,
@@ -110,12 +109,12 @@ impl GazeboDrone {
     }
 
     fn rpm_to_radians_per_second(rpm: f64) -> f64 {
+        use std::f64::consts::PI;
         rpm * (2.0 * PI / 60.0)
     }
 }
 
 impl ImuReader for GazeboDrone {
-    /// Returns the most recent sensor data.
     fn get_data(&self) -> Result<ImuData, &str> {
         match self.imu_signal.try_take() {
             Some(data) => return Ok(data),
@@ -123,7 +122,6 @@ impl ImuReader for GazeboDrone {
         }
     }
 
-    /// Stops the reading thread.
     fn stop(&self) -> Result<(), &str> {
         // not implementable for sim
         Ok(())
