@@ -177,15 +177,18 @@ impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> 
         debug!("read_imu [{:?}]", buf);
 
         Ok(crate::imu_traits::ImuData {
-            accelerometer: Self::rawaccel_to_mps2(&self, buf[1..7].try_into().unwrap()),
-            gyroscope: Self::rawgyro_to_dps(&self, buf[7..13].try_into().unwrap()),
+            accelerometer: Self::rawaccel_to_mps2(&self, &buf[1..7]),
+            gyroscope: Self::rawgyro_to_dps(&self, &buf[7..13]),
             ..Default::default()
         })
     }
-    fn rawaccel_to_mps2(&self, buf: &[u8; 6]) -> Option<Vector3> {
-        let x16 = (((buf[0] as u16) << 8) | (buf[1] as u16)) as i16;
-        let y16 = (((buf[2] as u16) << 8) | (buf[3] as u16)) as i16;
-        let z16 = (((buf[4] as u16) << 8) | (buf[5] as u16)) as i16;
+    fn bytes_to_i16(msb: u8, lsb: u8) -> i16 {
+        (((msb as u16) << 8) | (lsb as u16)) as i16
+    }
+    fn rawaccel_to_mps2(&self, buf: &[u8]) -> Option<Vector3> {
+        let x16 = Self::bytes_to_i16(buf[0], buf[1]);
+        let y16 = Self::bytes_to_i16(buf[2], buf[3]);
+        let z16 = Self::bytes_to_i16(buf[4], buf[5]);
 
         const MPS2_PER_G: f32 = 9.80665;
         Some(Vector3 {
@@ -194,10 +197,10 @@ impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> 
             z: (z16 as f32) * (self.accel_scale as f32) * MPS2_PER_G / (i16::MAX as f32),
         })
     }
-    fn rawgyro_to_dps(&self, buf: &[u8; 6]) -> Option<Vector3> {
-        let x16 = (((buf[0] as u16) << 8) | (buf[1] as u16)) as i16;
-        let y16 = (((buf[2] as u16) << 8) | (buf[3] as u16)) as i16;
-        let z16 = (((buf[4] as u16) << 8) | (buf[5] as u16)) as i16;
+    fn rawgyro_to_dps(&self, buf: &[u8]) -> Option<Vector3> {
+        let x16 = Self::bytes_to_i16(buf[0], buf[1]);
+        let y16 = Self::bytes_to_i16(buf[2], buf[3]);
+        let z16 = Self::bytes_to_i16(buf[4], buf[5]);
 
         Some(Vector3 {
             x: (x16 as f32) * self.gyro_scale.as_f32() / (i16::MAX as f32),
