@@ -17,7 +17,7 @@ pub struct GazeboDrone {
     motors_signal: Signal<CriticalSectionRawMutex, [u8; 4]>,
 }
 
-/// max RPM of motors
+/// max RPM of motors (at 100%)
 // note the skybot caps motor velocity at 1000 radians/s (aka 9550 RPM)
 const MAX_MOTOR_RPM: f64 = 10_000.0;
 
