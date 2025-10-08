@@ -6,4 +6,3 @@ pub mod systems {
         fn set_data(&self, velocities_pct: [u8;4]);
     }
 }
-

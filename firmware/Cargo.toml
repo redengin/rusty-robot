@@ -1,14 +1,22 @@
 [workspace]
 resolver = "3"
 members = [
+    # shared libraries
+    # "shared",
+
     # hardware drivers (traits and implementations)
     "drivers",
 
+    # robot systems (traits and implementations)
+    # "robots",
+
     # flight controllers (traits and implementations)
+    # TODO move under "robots"
     "flight_controllers",
 
     # example robots
     "robots/gazebo-quadcopter",
+    # "robots/f405-quadcopter",
 ]
 
 exclude = [
@@ -16,3 +24,21 @@ exclude = [
     #   the use of embassy requires specialized dependencies
     "robots/f405-quadcopter",
 ]
+
+[workspace.dependencies]
+log = "*"
+env_logger = "*"
+static_cell = "*"
+
+# embassy support
+embassy-executor = { version = "*", features = ["log"] }
+embassy-time = { version = "*", features = ["log"] }
+embassy-sync = "*"
+critical-section = "*"
+
+# gazebo simulation support
+gz = { version = "*", features = ["harmonic"] }
+
+rusty-robot-drivers = { path = "drivers" }
+rusty-robot-robots = { path = "robots" }
+rusty-robot-flight-controllers = { path = "flight_controllers" }

@@ -6,40 +6,18 @@ edition = "2024"
 
 
 [dependencies]
-# common dependencies
-log = "*"
-env_logger = "*"
-static_cell = "*"
-
-# use of embassy
-# FIXME - embassy is unable to use separate crates for embassy-executor & embassy-time
-#   so we aren't able to gather cargo by version number
-embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = [
-    "arch-std",
-    "executor-thread",
-    "log",
-] }
-embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = [
-    "std",
-] }
-critical-section = { version = "*", features = ["std"] }
-embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
-    "std",
-    "log",
-] }
-
-# gazebo sim support
-gz = { version = "*", features = ["harmonic"] }
-
-# shared driver traits
-rusty-robot-drivers = { path = "../../drivers" }
-
-# shared robot traits
-rusty-robot-robots = { path = "../../robots/" }
-
-# flight control systems
-rusty-robot-flight-controllers = { path = "../../flight_controllers" }
-
+# workspace shared dependencies
+log = { workspace = true }
+env_logger = { workspace = true }
+embassy-executor = { workspace = true, features = ["arch-std", "executor-thread"] }
+embassy-time = { workspace = true, features = ["std"] }
+embassy-sync = { workspace = true, features = ["std"] }
+critical-section = { workspace = true, features = ["std"] }
+static_cell = { workspace = true }
+rusty-robot-drivers = { workspace = true }
+rusty-robot-robots = { workspace = true }
+rusty-robot-flight-controllers = { workspace = true }
+gz = { workspace = true }
 
 [profile.release]
 debug = 2

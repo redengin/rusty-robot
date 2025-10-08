@@ -38,7 +38,7 @@ async fn main(spawner: Spawner) {
     let drone = &mut *mk_static!(GazeboDrone, GazeboDrone::new(robot_name));
 
     // spawn the flight controller control
-    spawner.spawn(flight_controller(drone).unwrap());
+    spawner.spawn(flight_controller(drone)).unwrap();
 
     // operate the drone
     drone.run().await
