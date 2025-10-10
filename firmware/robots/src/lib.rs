@@ -1,5 +1,7 @@
 #![no_std]
 
+pub mod flight_controllers;
+
 pub mod systems {
     pub trait QuadCopterMotors {
         /// set the velocity percent (0-255%) for all motors
