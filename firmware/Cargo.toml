@@ -1,29 +1,21 @@
 [workspace]
 resolver = "3"
 members = [
-    # shared libraries
-    # "shared",
-
-    # hardware drivers (traits and implementations)
+    # hardware and protocols (traits and implementations)
     "drivers",
 
     # robot systems (traits and implementations)
-    # "robots",
+    "systems",
 
-    # flight controllers (traits and implementations)
-    # TODO move under "robots"
-    "flight_controllers",
-
-    # example robots
+    # example robot simulations
     "robots/gazebo-quadcopter",
-    # "robots/f405-quadcopter",
 ]
 
-exclude = [
-    # physical example robots aren't included in the workspace as
-    #   the use of embassy requires specialized dependencies
-    "robots/f405-quadcopter",
-]
+# exclude = [
+#     # physical example robots aren't included in the workspace as
+#     #   the use of embassy requires specialized dependencies
+#     "robots/f405-quadcopter",
+# ]
 
 [workspace.dependencies]
 log = "*"
@@ -40,5 +32,4 @@ critical-section = "*"
 gz = { version = "*", features = ["harmonic"] }
 
 rusty-robot-drivers = { path = "drivers" }
-rusty-robot-robots = { path = "robots" }
-rusty-robot-flight-controllers = { path = "flight_controllers" }
+rusty-robot-systems = { path = "systems" }

@@ -4,6 +4,11 @@ version = "0.1.0"
 license = "Apache-2.0"
 edition = "2024"
 
+[[bin]]
+name = "gz-quadcopter-autonomous"
+path = "src/bin/autonomous.rs"
+
+
 
 [dependencies]
 # workspace shared dependencies
@@ -15,8 +20,8 @@ embassy-sync = { workspace = true, features = ["std"] }
 critical-section = { workspace = true, features = ["std"] }
 static_cell = { workspace = true }
 rusty-robot-drivers = { workspace = true }
-rusty-robot-robots = { workspace = true }
-rusty-robot-flight-controllers = { workspace = true }
+rusty-robot-systems = { workspace = true }
+# rusty-robot-flight-controllers = { workspace = true }
 gz = { workspace = true }
 
 [profile.release]

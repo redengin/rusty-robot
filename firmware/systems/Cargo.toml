@@ -1,0 +1,17 @@
+[package]
+name = "rusty-robot-systems"
+version = "0.1.0"
+license = "Apache-2.0"
+edition = "2024"
+
+
+[dependencies]
+# common dependencies
+log = "*"
+
+# provide attitude estimation via kalman filter
+# dcmimu = { version = "*", optional = true }
+
+
+# [features]
+# flight_controllers = ["dep:dcmimu"]

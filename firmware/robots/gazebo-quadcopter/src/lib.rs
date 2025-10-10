@@ -4,7 +4,6 @@ use rusty_robot_drivers::imu_traits::{self, ImuData, ImuReader};
 use rusty_robot_drivers::{gps_traits, nmea};
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
-use rusty_robot_robots::systems::QuadCopterMotors;
 
 pub struct GazeboDrone {
     pub imu_topic: String,
@@ -137,7 +136,7 @@ impl gps_traits::Gps for GazeboDrone {
     }
 }
 
-impl QuadCopterMotors for GazeboDrone {
+impl rusty_robot_systems::QuadCopterMotors for GazeboDrone {
     fn set_data(&self, velocities_pct: [u8; 4]) {
         self.motors_signal.signal(velocities_pct);
     }
