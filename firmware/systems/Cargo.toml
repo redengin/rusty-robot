@@ -7,7 +7,7 @@ edition = "2024"
 
 [dependencies]
 # common dependencies
-log = "*"
+log = { workspace = true }
 
 # provide attitude estimation via kalman filter
 # dcmimu = { version = "*", optional = true }

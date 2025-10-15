@@ -6,6 +6,7 @@ members = [
 
     # robot systems (traits and implementations)
     "systems",
+    "systems/flight-controllers",
 
     # example robot simulations
     "robots/gazebo-quadcopter",
@@ -21,6 +22,7 @@ exclude = [
 log = "*"
 env_logger = "*"
 static_cell = "*"
+embedded-hal-async = "*"
 
 # embassy support
 embassy-executor = { version = "*", features = ["log"] }
