@@ -11,11 +11,11 @@ members = [
     "robots/gazebo-quadcopter",
 ]
 
-# exclude = [
-#     # physical example robots aren't included in the workspace as
-#     #   the use of embassy requires specialized dependencies
-#     "robots/f405-quadcopter",
-# ]
+exclude = [
+    # physical example robots aren't included in the workspace as
+    #   the use of embassy requires specialized dependencies
+    "robots/f405-quadcopter",
+]
 
 [workspace.dependencies]
 log = "*"

@@ -2,6 +2,7 @@
 #![no_std]
 #![no_main]
 
+
 // upon panic, reset the chip
 use panic_reset as _;
 // #[panic_handler]
@@ -16,6 +17,7 @@ use log::*;
 // bind used interrupts to embassy runtime
 embassy_stm32::bind_interrupts!(pub struct Irqs {
     OTG_FS => embassy_stm32::usb::InterruptHandler<embassy_stm32::peripherals::USB_OTG_FS>;
+    USART1 => embassy_stm32::usart::InterruptHandler<embassy_stm32::peripherals::USART1>;
 });
 
 #[embassy_executor::main]
@@ -58,6 +60,23 @@ async fn main(spawner: embassy_executor::Spawner) {
     // create the IMU driver
     let mut imu = rusty_robot_drivers::imu::icm42688::ICM42688::new(&mut imu_dev).await.unwrap();
 
+    // initialize serial GPS
+    let serial1_config = embassy_stm32::usart::Config::default();
+    // serial1_config.baudrate = 38_400;
+    // serial1_config.baudrate = 115_200;
+    // serial1_config.data_bits = embassy_stm32::usart::DataBits::DataBits8,
+    // serial1_config.stop_bits = embassy_stm32::usart::StopBits::STOP1,
+    // serial1_config.parity = embassy_stm32::usart::Parity::ParityNone,
+    let mut serial1 = embassy_stm32::usart::Uart::new(
+        peripherals.USART1,
+        peripherals.PA10,
+        peripherals.PA9,
+        Irqs,
+        peripherals.DMA2_CH7,
+        peripherals.DMA2_CH2,
+        serial1_config
+    ).unwrap();
+
     // demonstrate hardware (IMU and GPS)
     embassy_time::Timer::after_millis(1000).await;
     imu.set_power_mode(rusty_robot_drivers::imu::icm42688::PowerMode::Enabled).await.unwrap();
@@ -65,8 +84,17 @@ async fn main(spawner: embassy_executor::Spawner) {
         debug!("reading imu....");
         match imu.read_imu().await {
             Ok(v) => info!("accel: {:?}, gyro: [{:?}", v.accelerometer.unwrap(), v.gyroscope.unwrap()),
-            Err(e)  => error!("imu spi error [{:?}", e),
+            Err(e)  => error!("imu spi error [{:?}]", e),
         }
+
+        // read GPS data
+        let mut gps_buf: [u8; _] = [0; 255];
+        match serial1.read_until_idle(&mut gps_buf).await
+        {
+            Ok(sz) => info!("gps read {sz} bytes <{:?}>", gps_buf),
+            Err(e) => error!("gps read error [{:?}]", e)
+        }
+
         embassy_time::Timer::after_millis(1000).await;
     }
 }
