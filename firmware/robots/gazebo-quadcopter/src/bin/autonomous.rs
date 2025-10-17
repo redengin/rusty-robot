@@ -36,17 +36,11 @@ async fn main(spawner: Spawner) {
     // create the drone as a static instance
     let drone = &mut *mk_static!(GazeboDrone, GazeboDrone::new(robot_name));
 
-    // spawn the flight controller control
-    spawner.spawn(flight_controller(drone)).unwrap();
+    // spawn the drone thread
+    spawner.spawn(drone_task(drone)).unwrap();
 
-    // operate the drone
-    drone.run().await
-}
-
-#[embassy_executor::task]
-async fn flight_controller(drone: &'static GazeboDrone) {
+    // run the flight controller in main context
     const CYCLE_RATE_HZ: u64 = 8000;
-
     let mut ticker = Ticker::every(Duration::from_hz(CYCLE_RATE_HZ));
     loop {
         // TODO autonomous::step(drone);
@@ -60,3 +54,7 @@ async fn flight_controller(drone: &'static GazeboDrone) {
     }
 }
 
+#[embassy_executor::task]
+async fn drone_task(drone: &'static GazeboDrone) {
+    drone.run().await;
+}
