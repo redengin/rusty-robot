@@ -49,10 +49,10 @@ pub struct Quaternion {
 impl core::fmt::Debug for Quaternion {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("")
-            .field("w", &self.w)
-            .field("x", &self.x)
-            .field("y", &self.y)
-            .field("z", &self.z)
+            .field("w", &format_args!("{:.3}", &self.w))
+            .field("x", &format_args!("{:.3}", &self.x))
+            .field("y", &format_args!("{:.3}", &self.y))
+            .field("z", &format_args!("{:.3}", &self.z))
             .finish()
     }
 }
