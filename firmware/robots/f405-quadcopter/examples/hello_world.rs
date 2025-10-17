@@ -83,7 +83,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     loop {
         debug!("reading imu....");
         match imu.read_imu().await {
-            Ok(v) => info!("accel: {:?}, gyro: [{:?}", v.accelerometer.unwrap(), v.gyroscope.unwrap()),
+            Ok(v) => info!("accel: {:?}, gyro: {:?}", v.accelerometer.unwrap(), v.gyroscope.unwrap()),
             Err(e)  => error!("imu spi error [{:?}]", e),
         }
 

@@ -3,7 +3,7 @@
 
 use log::*;
 
-use crate::imu_traits::Vector3;
+use rusty_robot::Vector3;
 
 const FLAG_READ_REG: u8 = 0x80;
 pub const REG_WHO_AM_I: u8 = 0x75;

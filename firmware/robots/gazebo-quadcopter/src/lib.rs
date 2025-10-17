@@ -1,6 +1,7 @@
 use gz::{self as gazebosim};
 
-use rusty_robot_drivers::imu_traits::{self, ImuData, ImuReader};
+use rusty_robot::Vector3;
+use rusty_robot_drivers::imu_traits::{ImuData, ImuReader};
 use rusty_robot_drivers::{gps_traits, nmea};
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
@@ -49,12 +50,12 @@ impl GazeboDrone {
 
                 // convert the message into an IMU state
                 let imu_data = ImuData {
-                    accelerometer: Some(imu_traits::Vector3 {
+                    accelerometer: Some(Vector3 {
                         x: msg.linear_acceleration.x as f32,
                         y: msg.linear_acceleration.y as f32,
                         z: msg.linear_acceleration.z as f32,
                     }),
-                    gyroscope: Some(imu_traits::Vector3{
+                    gyroscope: Some(Vector3 {
                         x: msg.angular_velocity.x as f32,
                         y: msg.angular_velocity.y as f32,
                         z: msg.angular_velocity.z as f32,
