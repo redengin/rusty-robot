@@ -7,17 +7,14 @@ edition = "2024"
 [dependencies]
 log = { workspace = true }
 
-# shared driver traits
-# rusty-robot-drivers = { path = "../drivers" }
-
-# shared robot traits
-# rusty-robot-robots = { path = "../robots/" }
+rusty-robot = { workspace = true }
+rusty-robot-drivers = { workspace = true }
+rusty-robot-systems = { workspace = true }
 
 # embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
 #     "std",
 #     "log",
 # ] }
-
 # neural network support (https://crates.io/search?q=neural-network%20no_std)
 # fnn = "*"
 # num-traits = { version = "*", default-features = false }

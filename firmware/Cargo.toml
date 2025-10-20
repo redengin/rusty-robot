@@ -39,3 +39,4 @@ gz = { version = "*", features = ["harmonic"] }
 rusty-robot = { path = "common" }
 rusty-robot-drivers = { path = "drivers" }
 rusty-robot-systems = { path = "systems" }
+rusty-robot-flight-controllers = { path = "systems/flight-controllers" }

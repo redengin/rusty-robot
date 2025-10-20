@@ -1,6 +1,7 @@
 //! Autonomous Drone (maneuvers to points in space)
 use embassy_time::{Duration, Ticker};
 use log::*;
+use rusty_robot_flight_controllers::FlightController;
 use std::env;
 
 use embassy_executor::Spawner;
@@ -39,6 +40,8 @@ async fn main(spawner: Spawner) {
     // spawn the drone thread
     spawner.spawn(drone_task(drone)).unwrap();
 
+    // create the flight controller as a static instance
+    let fc = &mut *mk_static!(FlightController<GazeboDrone>, FlightController::new(drone));
     // run the flight controller in main context
     const CYCLE_RATE_HZ: u64 = 8000;
     let mut ticker = Ticker::every(Duration::from_hz(CYCLE_RATE_HZ));
@@ -49,6 +52,8 @@ async fn main(spawner: Spawner) {
         // <T as systems::QuadCopterMotors>::set_data(drone, velocities_pct);
         let velocities_pct: [u8; 4] = [51, 51, 51, 51];
         <GazeboDrone as rusty_robot_systems::QuadCopterMotors>::set_data(drone, velocities_pct);
+
+        fc.step();
 
         ticker.next().await
     }

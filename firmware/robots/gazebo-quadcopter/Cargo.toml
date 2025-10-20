@@ -23,7 +23,7 @@ static_cell = { workspace = true }
 rusty-robot = { workspace = true }
 rusty-robot-drivers = { workspace = true }
 rusty-robot-systems = { workspace = true }
-# rusty-robot-flight-controllers = { workspace = true }
+rusty-robot-flight-controllers = { workspace = true }
 
 gz = { workspace = true }
 
