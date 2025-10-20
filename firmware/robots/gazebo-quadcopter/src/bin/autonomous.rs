@@ -50,8 +50,8 @@ async fn main(spawner: Spawner) {
         // let _ = <T as ImuReader>::get_data(drone);
         // let _ = <T as Gps>::get_data(drone);
         // <T as systems::QuadCopterMotors>::set_data(drone, velocities_pct);
-        let velocities_pct: [u8; 4] = [51, 51, 51, 51];
-        <GazeboDrone as rusty_robot_systems::QuadCopterMotors>::set_data(drone, velocities_pct);
+        // let velocities_pct: [u8; 4] = [51, 51, 51, 51];
+        // <GazeboDrone as rusty_robot_systems::QuadCopterMotors>::set_data(drone, velocities_pct);
 
         fc.step();
 
