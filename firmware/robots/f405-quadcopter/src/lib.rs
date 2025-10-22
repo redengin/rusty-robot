@@ -1,48 +1,5 @@
 #![no_std]
 
-
-pub struct F405Quadcopter {
-    // imu_dev: embedded_hal_bus::spi::ExclusiveDevice,
-}
-impl F405Quadcopter {
-    pub fn new(
-        // imu_dev: embedded_hal_bus::spi::ExclusiveDevice,
-    ) -> Self
-    {
-        F405Quadcopter {
-            // imu_dev,
-        }
-    }
-}
-
-use rusty_robot_drivers::imu_traits::{ImuReader, ImuData};
-impl ImuReader for F405Quadcopter {
-    fn get_data(&self) -> Result<ImuData, &str>
-    {
-        Err("not implemented")
-    }
-    
-    fn stop(&self) -> Result<(), &str> {
-        Err("not implemented")
-    }
-}
-
-use rusty_robot_drivers::{gps_traits::Gps, nmea::Nmea};
-impl Gps for F405Quadcopter {
-    fn get_data(&self) -> Result<Nmea, &str> {
-        Err("not implemented")
-    }
-}
-
-use rusty_robot_systems::QuadCopterMotors;
-impl QuadCopterMotors for F405Quadcopter {
-    fn set_data(&self, velocities_pct: [u8; 4]) {
-        todo!()
-    }
-}
-
-
-
 /// initializes the hardware via embassy
 pub fn init() -> embassy_stm32::Peripherals {
     //! uses the internal oscillator
