@@ -54,8 +54,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     );
     use embassy_stm32::gpio;
     // NOTE: my chip requires that CS toggle - holding CS LOW results devolves into reads of 0xFF
-    // let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
-    let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::Low, gpio::Speed::VeryHigh);
+    let imu_cs = gpio::Output::new(peripherals.PA4, gpio::Level::High, gpio::Speed::VeryHigh);
     let mut imu_dev = embedded_hal_bus::spi::ExclusiveDevice::new_no_delay(spi1, imu_cs).unwrap();
     // create the IMU driver
     let mut imu = rusty_robot_drivers::imu::icm42688::ICM42688::new(&mut imu_dev).await.unwrap();
@@ -88,13 +87,13 @@ async fn main(spawner: embassy_executor::Spawner) {
         }
 
         // read GPS data
-        let mut gps_buf: [u8; _] = [0; 255];
-        match serial1.read_until_idle(&mut gps_buf).await
-        {
-            Ok(sz) => info!("gps read {sz} bytes <{:?}>", gps_buf),
-            Err(e) => error!("gps read error [{:?}]", e)
-        }
+        // let mut gps_buf: [u8; _] = [0; 255];
+        // match serial1.read_until_idle(&mut gps_buf).await
+        // {
+        //     Ok(sz) => info!("gps read {sz} bytes <{:?}>", gps_buf),
+        //     Err(e) => error!("gps read error [{:?}]", e)
+        // }
 
-        embassy_time::Timer::after_millis(1000).await;
+        embassy_time::Timer::after_millis(500).await;
     }
 }

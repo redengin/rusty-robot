@@ -1,3 +1,5 @@
+#![no_std]
+
 // use rusty_robot::{Quaternion, Vector3};
 
 // pub struct Trajectory {
