@@ -1,23 +1,13 @@
 //! Autonomous Drone (maneuvers to points in space)
 use embassy_time::{Duration, Ticker};
 use log::*;
-use rusty_robot_flight_controllers::FlightController;
 use std::env;
 
-use embassy_executor::Spawner;
+use rusty_robot::mk_static;
 use rusty_robot_gazebo_quadcopter::GazeboDrone;
+use rusty_robot_flight_controllers::FlightController;
 
-// support a dynamically constructed static object
-// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
-macro_rules! mk_static {
-    ($t:ty,$val:expr) => {{
-        static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
-        #[deny(unused_attributes)]
-        let x = STATIC_CELL.uninit().write(($val));
-        x
-    }};
-}
-
+use embassy_executor::Spawner;
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     // support logging

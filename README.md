@@ -21,13 +21,13 @@ Outline of the repository
 * [simulator](simulator/) - allows you to test your robot control in simulated
         environments
 * [firmware](firmware/) - software ([RUST](https://www.rust-lang.org/)) to support your robot
+    * [common](firmware/common/) - shared data types
     * [drivers](firmware/drivers/) - hardware drivers and interface traits
-    * [robots](firmware/robots/) - interface traits for common robot systems
-        * example implementations (which support simulation)
-    * [flight_controllers](firmware/flight_controllers/) - control systems for flying robots
-
-
-
+    * [systems](firmware/systems/) - system traits
+        * [flight_controllers](firmware/systems/flight_controllers) - flight controllers
+    * [robots](firmware/robots/) - example implementations
+        * gazebo simulation support
+    * [components](firmware/components) - embedded firmware for generic devices
 
 
 
