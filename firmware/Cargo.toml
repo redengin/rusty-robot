@@ -16,9 +16,9 @@ members = [
 ]
 
 exclude = [
-    # physical example robots aren't included in the workspace as
-    #   the use of embassy requires specialized dependencies
+    # hardware specific targets can't be part of the workspace
     "robots/f405-quadcopter",
+    "components/esp32",
 ]
 
 [workspace.dependencies]
