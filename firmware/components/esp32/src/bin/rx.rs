@@ -26,23 +26,27 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     // initialize the logger
     esp_println::logger::init_logger_from_env();
 
+    // create a heap allocator (required by esp_radio)
+    const HEAP_SIZE: usize = 98767;
+    esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: HEAP_SIZE);
+
     // initialize the SoC
     use esp_hal::clock::CpuClock;
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
-
-    // create a heap allocator (required by esp_radio)
-    esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: 98767);
 
     // initialize embassy scheduler
     use esp_hal::timer::timg::TimerGroup;
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     esp_rtos::start(timg0.timer0);
 
-    // initialize ESP-NOW
+    // initialize WiFi Long Range (LR) for mesh (both AP and STA)
+    const ESP_WIFI_CONFIG_COUNTRY_CODE: &str = env!("ESP_WIFI_CONFIG_COUNTRY_CODE");
+    const RADIO_PROTOCOLS: enumset::EnumSet<esp_radio::wifi::Protocol> =
+        enumset::enum_set!(esp_radio::wifi::Protocol::P802D11LR);
     let radio = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
-    const ESP_WIFI__CONFIG_COUNTRY_CODE: &str = env!("ESP_WIFI_CONFIG_COUNTRY_CODE");
-    let country_code: [u8; 2] = ESP_WIFI__CONFIG_COUNTRY_CODE
+    //      set the country code
+    let country_code: [u8; 2] = ESP_WIFI_CONFIG_COUNTRY_CODE
         .as_bytes()
         .try_into()
         .expect("set [env] ESP_WIFI_CONFIG_COUNTRY_CODE");
@@ -51,14 +55,50 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
         &radio,
         peripherals.WIFI,
         esp_radio::wifi::Config::default().with_country_code(country_info),
-    ).expect("Failed to initialize WiFi");
-    radio_controller.set_mode(esp_radio::wifi::WifiMode::Sta).unwrap();
-    radio_controller.start().unwrap();
-    let mut esp_now = radio_interfaces.esp_now;
-    // TODO is this necessary?
-    let radio_channel = 11;
-    esp_now.set_channel(radio_channel).unwrap();
-    info!("Initialized ESP-NOW [version: {}] on channel {}", esp_now.version().unwrap(), radio_channel);
+    )
+    .expect("Failed to initialize WiFi");
+    //      configure radio for WiFi LR
+    radio_controller
+        .set_protocol(RADIO_PROTOCOLS)
+        .expect("Failed to enable WiFi LR");
+    //      configure radio for mesh (AP and STA)
+    radio_controller
+        .set_mode(esp_radio::wifi::WifiMode::ApSta)
+        .expect("Failed to enable both AP and STA");
+    //      configure the AP
+    let ap_config = esp_radio::wifi::ClientConfig::default()
+        .with_channel(
+            env!("AP_CHANNEL")
+                .parse()
+                .expect("failed to parse [env] AP_CHANNEL"),
+        )
+        .with_ssid(env!("AP_SSID").into())
+        .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
+        .with_password(env!("AP_PASSWORD").into());
+    //      configure the STA
+
+
+
+    // radio_controller.set_config(
+    //     esp_radio::wifi::ModeConfig::ApSta(
+    //         esp_radio::wifi::ClientConfig{ ssid: todo!(), bssid: todo!(), auth_method: todo!(), password: todo!(), channel: todo!(), protocols: todo!(), listen_interval: todo!(), beacon_timeout: todo!(), failure_retry_cnt: todo!(), scan_method: todo!() },
+    //         esp_radio::wifi::AccessPointConfig {
+
+    //         }
+    //     ))
+    // .expect("Failed to configure AP and STA")
+
+    // radio_controller.start().unwrap();
+
+    // let mut esp_now = radio_interfaces.esp_now;
+    // // TODO is this necessary?
+    // let radio_channel = 11;
+    // esp_now.set_channel(radio_channel).unwrap();
+    // info!(
+    //     "Initialized ESP-NOW [version: {}] on channel {}<{ESP_WIFI_CONFIG_COUNTRY_CODE}>",
+    //     esp_now.version().unwrap(),
+    //     radio_channel
+    // );
 
     // TODO: Spawn some tasks
     let _ = spawner;

@@ -34,6 +34,8 @@ esp-radio = { version = "*", features = [
 ] }
 # required by esp-radio
 esp-alloc = "*"
+# required by esp-radio
+enumset = { version = "*", default-features = false }
 
 
 # smoltcp = { version = "*", default-features = false, features = [

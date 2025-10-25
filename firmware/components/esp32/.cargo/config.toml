@@ -5,8 +5,14 @@ runner = "espflash flash --baud 460800 --monitor --chip esp32"
 [env]
 ESP_LOG = "debug"
 
+AP_CHANNEL = "11"
+AP_SSID = "RUSTY-ROBOT-MESH"
+AP_PASSWORD = "rusty-robot"   # CHANGE ME!!!
+
 # two-character country info as described in the document ISO/IEC3166-1.
 ESP_WIFI_CONFIG_COUNTRY_CODE = "US"
+# disable USB debug for optimal performance
+ESP_WIFI_CONFIG_PHY_ENABLE_USB = "false"
 
 [build]
 rustflags = [
