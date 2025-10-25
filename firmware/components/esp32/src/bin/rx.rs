@@ -6,13 +6,18 @@
     holding buffers for the duration of a data transfer."
 )]
 
+use esp_radio::wifi::ClientConfig;
 use log::*;
 
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    error!("PANIC - {:?}", info);
-    esp_hal::system::software_reset()
-}
+// #[panic_handler]
+// fn panic(info: &core::panic::PanicInfo) -> ! {
+//     // error!("{:?}", info);
+//     // error!("{:?} {}", info.location(), info.message());
+//     // error!("{:?}", info.location().);
+//     error!("{}", info.message());
+//     esp_hal::system::software_reset()
+// }
+use esp_backtrace as _;
 
 // provide scheduler api
 use embassy_time::{Duration, Timer};
@@ -41,64 +46,38 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0);
 
     // initialize WiFi Long Range (LR) for mesh (both AP and STA)
-    const ESP_WIFI_CONFIG_COUNTRY_CODE: &str = env!("ESP_WIFI_CONFIG_COUNTRY_CODE");
-    const RADIO_PROTOCOLS: enumset::EnumSet<esp_radio::wifi::Protocol> =
-        enumset::enum_set!(esp_radio::wifi::Protocol::P802D11LR);
     let radio = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
-    //      set the country code
-    let country_code: [u8; 2] = ESP_WIFI_CONFIG_COUNTRY_CODE
-        .as_bytes()
-        .try_into()
-        .expect("set [env] ESP_WIFI_CONFIG_COUNTRY_CODE");
-    let country_info = esp_radio::wifi::CountryInfo::from(country_code);
-    let (mut radio_controller, radio_interfaces) = esp_radio::wifi::new(
-        &radio,
-        peripherals.WIFI,
-        esp_radio::wifi::Config::default().with_country_code(country_info),
-    )
-    .expect("Failed to initialize WiFi");
-    //      configure radio for WiFi LR
-    radio_controller
-        .set_protocol(RADIO_PROTOCOLS)
-        .expect("Failed to enable WiFi LR");
+    let (mut radio_controller, radio_interfaces) =
+        esp_radio::wifi::new(&radio, peripherals.WIFI, esp_radio::wifi::Config::default()).unwrap();
     //      configure radio for mesh (AP and STA)
     radio_controller
         .set_mode(esp_radio::wifi::WifiMode::ApSta)
-        .expect("Failed to enable both AP and STA");
-    //      configure the AP
-    let ap_config = esp_radio::wifi::ClientConfig::default()
-        .with_channel(
-            env!("AP_CHANNEL")
-                .parse()
-                .expect("failed to parse [env] AP_CHANNEL"),
-        )
-        .with_ssid(env!("AP_SSID").into())
-        .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
-        .with_password(env!("AP_PASSWORD").into());
-    //      configure the STA
+        .unwrap();
+    //      configure the AP and STA
+    radio_controller
+        .set_config(&esp_radio::wifi::ModeConfig::ApSta(
+            // AP configuration
+            esp_radio::wifi::ClientConfig::default()
+                .with_channel(
+                    env!("AP_CHANNEL")
+                        .parse()
+                        .expect("failed to parse AP_CHANNEL"),
+                )
+                .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
+                .with_password(env!("AP_PASSWORD").into()),
+            // STA configuration
+            esp_radio::wifi::AccessPointConfig::default(),
+        ))
+        .expect("Failed to configure AP and STA");
+    //      configure radio for WiFi LR (must be after set_config)
+    radio_controller
+        .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
+        .expect("Failed to enable WiFi LR");
+
+    // start the radio controller
+    radio_controller.start().unwrap();
 
 
-
-    // radio_controller.set_config(
-    //     esp_radio::wifi::ModeConfig::ApSta(
-    //         esp_radio::wifi::ClientConfig{ ssid: todo!(), bssid: todo!(), auth_method: todo!(), password: todo!(), channel: todo!(), protocols: todo!(), listen_interval: todo!(), beacon_timeout: todo!(), failure_retry_cnt: todo!(), scan_method: todo!() },
-    //         esp_radio::wifi::AccessPointConfig {
-
-    //         }
-    //     ))
-    // .expect("Failed to configure AP and STA")
-
-    // radio_controller.start().unwrap();
-
-    // let mut esp_now = radio_interfaces.esp_now;
-    // // TODO is this necessary?
-    // let radio_channel = 11;
-    // esp_now.set_channel(radio_channel).unwrap();
-    // info!(
-    //     "Initialized ESP-NOW [version: {}] on channel {}<{ESP_WIFI_CONFIG_COUNTRY_CODE}>",
-    //     esp_now.version().unwrap(),
-    //     radio_channel
-    // );
 
     // TODO: Spawn some tasks
     let _ = spawner;

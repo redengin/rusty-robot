@@ -11,6 +11,7 @@ version = "0.1.0"
 [dependencies]
 log = "*"
 esp-println = { version = "*", features = ["esp32", "log-04"] }
+esp-backtrace = { version = "*", features = ["panic-handler", "esp32", "println"] }
 
 esp-bootloader-esp-idf = { version = "*", features = ["esp32"] }
 esp-hal = { version = "=1.0.0-rc.1", features = ["esp32", "unstable"] }
@@ -34,9 +35,6 @@ esp-radio = { version = "*", features = [
 ] }
 # required by esp-radio
 esp-alloc = "*"
-# required by esp-radio
-enumset = { version = "*", default-features = false }
-
 
 # smoltcp = { version = "*", default-features = false, features = [
 #     "medium-ethernet",
