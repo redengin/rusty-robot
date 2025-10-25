@@ -58,6 +58,7 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
         .set_config(&esp_radio::wifi::ModeConfig::ApSta(
             // AP configuration
             esp_radio::wifi::ClientConfig::default()
+                .with_ssid(env!("AP_SSID").into())
                 .with_channel(
                     env!("AP_CHANNEL")
                         .parse()
@@ -75,9 +76,12 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
         .expect("Failed to enable WiFi LR");
 
     // start the radio controller
-    radio_controller.start().unwrap();
-
-
+    info!(
+        "starting radio SSID:{} channel:{}",
+        env!("AP_SSID"),
+        env!("AP_CHANNEL")
+    );
+    radio_controller.start_async().await.unwrap();
 
     // TODO: Spawn some tasks
     let _ = spawner;
