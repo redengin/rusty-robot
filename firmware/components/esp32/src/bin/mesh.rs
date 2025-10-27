@@ -6,18 +6,10 @@
     holding buffers for the duration of a data transfer."
 )]
 
-use esp_radio::wifi::ClientConfig;
-use log::*;
+// provide panic handler
+use rusty_robot_esp32 as _;
 
-// #[panic_handler]
-// fn panic(info: &core::panic::PanicInfo) -> ! {
-//     // error!("{:?}", info);
-//     // error!("{:?} {}", info.location(), info.message());
-//     // error!("{:?}", info.location().);
-//     error!("{}", info.message());
-//     esp_hal::system::software_reset()
-// }
-use esp_backtrace as _;
+use log::*;
 
 // provide scheduler api
 use embassy_time::{Duration, Timer};
@@ -47,7 +39,7 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 
     // initialize WiFi Long Range (LR) for mesh (both AP and STA)
     let radio = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
-    let (mut radio_controller, radio_interfaces) =
+    let (mut radio_controller, _radio_interfaces) =
         esp_radio::wifi::new(&radio, peripherals.WIFI, esp_radio::wifi::Config::default()).unwrap();
     //      configure radio for mesh (AP and STA)
     radio_controller
@@ -56,8 +48,10 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     //      configure the AP and STA
     radio_controller
         .set_config(&esp_radio::wifi::ModeConfig::ApSta(
+            // STA configuration
+            esp_radio::wifi::ClientConfig::default(),
             // AP configuration
-            esp_radio::wifi::ClientConfig::default()
+            esp_radio::wifi::AccessPointConfig::default()
                 .with_ssid(env!("AP_SSID").into())
                 .with_channel(
                     env!("AP_CHANNEL")
@@ -66,8 +60,6 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
                 )
                 .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
                 .with_password(env!("AP_PASSWORD").into()),
-            // STA configuration
-            esp_radio::wifi::AccessPointConfig::default(),
         ))
         .expect("Failed to configure AP and STA");
     //      configure radio for WiFi LR (must be after set_config)
@@ -75,13 +67,13 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
         .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
         .expect("Failed to enable WiFi LR");
 
-    // start the radio controller
+    //      start the radio controller
+    radio_controller.start().unwrap();
     info!(
-        "starting radio SSID:{} channel:{}",
+        "SSID: {} \t channel: {}",
         env!("AP_SSID"),
         env!("AP_CHANNEL")
     );
-    radio_controller.start_async().await.unwrap();
 
     // TODO: Spawn some tasks
     let _ = spawner;
