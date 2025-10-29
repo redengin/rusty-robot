@@ -3,22 +3,61 @@ pub struct MeshController<'d> {
     wifi_interfaces: esp_radio::wifi::Interfaces<'d>,
 }
 
+/// Create a new mesh node
+/// environment variables (see config.toml)
+///     * ESP_WIFI_CONFIG_COUNTRY_CODE - constrains radio operation per regulation
+///     * AP_CHANNEL - initial channel for the mesh
+///     * AP_SSID - name of the mesh
+///     * AP_PASSWORD - secret used to join mesh
 pub fn new<'d>(
     inited: &'d esp_radio::Controller<'d>,
     device: esp_hal::peripherals::WIFI<'d>,
 ) -> MeshController<'d> {
+    // TODO is this already handled?
     // parse environment variable into country_code
-    let country_code_bytes = env!("ESP_WIFI_CONFIG_COUNTRY_CODE").as_bytes();
-    let country_code: [u8; 2] = [country_code_bytes[0], country_code_bytes[1]];
+    // let country_code_bytes = env!("ESP_WIFI_CONFIG_COUNTRY_CODE").as_bytes();
+    // let country_code: [u8; 2] = [country_code_bytes[0], country_code_bytes[1]];
 
     // configure radio
-    let radio_config = esp_radio::wifi::Config::default().with_country_code(country_code);
+    let radio_config = esp_radio::wifi::Config::default();
+        // .with_country_code(country_code);
 
-    let (wifi_controller, wifi_interfaces) =
+    let (mut wifi_controller, wifi_interfaces) =
         esp_radio::wifi::new(inited, device, radio_config).unwrap();
+
+    // configure wifi controller
+    wifi_controller
+        .set_mode(esp_radio::wifi::WifiMode::ApSta)
+        .unwrap();
+    wifi_controller
+        .set_config(&esp_radio::wifi::ModeConfig::ApSta(
+            // STA configuration
+            esp_radio::wifi::ClientConfig::default(),
+            // AP configuration
+            esp_radio::wifi::AccessPointConfig::default()
+                .with_ssid(env!("AP_SSID").into())
+                .with_channel(
+                    env!("AP_CHANNEL")
+                        .parse()
+                        .expect("failed to parse AP_CHANNEL"),
+                )
+                .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
+                .with_password(env!("AP_PASSWORD").into()),
+        ))
+        .expect("Failed to configure AP and STA");
+    //      configure radio for WiFi LR (must be after set_config)
+    wifi_controller
+        .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
+        .expect("Failed to enable WiFi LR");
 
     MeshController {
         wifi_controller,
         wifi_interfaces,
+    }
+}
+
+impl MeshController<'_> {
+    pub fn start(mut self) -> Result<(), esp_radio::wifi::WifiError> {
+        self.wifi_controller.start()
     }
 }
