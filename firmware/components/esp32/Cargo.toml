@@ -35,30 +35,8 @@ esp-radio = { version = "*", features = [
 # required by esp-radio
 esp-alloc = "*"
 
-# smoltcp = { version = "*", default-features = false, features = [
-#     "medium-ethernet",
-#     "multicast",
-#     "proto-dhcpv4",
-#     "proto-dns",
-#     "proto-ipv4",
-#     "socket-dns",
-#     "socket-icmp",
-#     "socket-raw",
-#     "socket-tcp",
-#     "socket-udp",
-# ] }
-# embassy-net = { version = "*", features = [
-#     "dhcpv4",
-#     "medium-ethernet",
-#     "tcp",
-#     "udp",
-# ] }
-
-# embedded-io = "*"
-# embedded-io-async = "*"
-# critical-section = "*"
-# static_cell = "*"
-
+# rusty-robot shared libraries
+rusty-robot = { path = "../../common" }
 
 [profile.dev]
 # Rust debug is too slow.

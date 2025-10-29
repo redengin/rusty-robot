@@ -7,7 +7,7 @@
 )]
 
 // provide panic handler
-use rusty_robot_esp32 as _;
+use rusty_robot_esp32::{self as _, mesh};
 
 use log::*;
 
@@ -37,43 +37,48 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     esp_rtos::start(timg0.timer0);
 
-    // initialize WiFi Long Range (LR) for mesh (both AP and STA)
-    let radio = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
-    let (mut radio_controller, _radio_interfaces) =
-        esp_radio::wifi::new(&radio, peripherals.WIFI, esp_radio::wifi::Config::default()).unwrap();
-    //      configure radio for mesh (AP and STA)
-    radio_controller
-        .set_mode(esp_radio::wifi::WifiMode::ApSta)
-        .unwrap();
-    //      configure the AP and STA
-    radio_controller
-        .set_config(&esp_radio::wifi::ModeConfig::ApSta(
-            // STA configuration
-            esp_radio::wifi::ClientConfig::default(),
-            // AP configuration
-            esp_radio::wifi::AccessPointConfig::default()
-                .with_ssid(env!("AP_SSID").into())
-                .with_channel(
-                    env!("AP_CHANNEL")
-                        .parse()
-                        .expect("failed to parse AP_CHANNEL"),
-                )
-                .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
-                .with_password(env!("AP_PASSWORD").into()),
-        ))
-        .expect("Failed to configure AP and STA");
-    //      configure radio for WiFi LR (must be after set_config)
-    radio_controller
-        .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
-        .expect("Failed to enable WiFi LR");
+    // create the radio mesh
+    let radioController = esp_radio::init().unwrap();
+    let mesh = mesh::new(&radioController, peripherals.WIFI);
+    // let mesh_node = mk_static!(MeshNode, MeshNode::new(peripherals.WIFI));
 
-    //      start the radio controller
-    radio_controller.start().unwrap();
-    info!(
-        "SSID: {} \t channel: {}",
-        env!("AP_SSID"),
-        env!("AP_CHANNEL")
-    );
+    // // initialize WiFi Long Range (LR) for mesh (both AP and STA)
+    // let radio = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
+    // let (mut radio_controller, _radio_interfaces) =
+    //     esp_radio::wifi::new(&radio, peripherals.WIFI, esp_radio::wifi::Config::default()).unwrap();
+    // //      configure radio for mesh (AP and STA)
+    // radio_controller
+    //     .set_mode(esp_radio::wifi::WifiMode::ApSta)
+    //     .unwrap();
+    // //      configure the AP and STA
+    // radio_controller
+    //     .set_config(&esp_radio::wifi::ModeConfig::ApSta(
+    //         // STA configuration
+    //         esp_radio::wifi::ClientConfig::default(),
+    //         // AP configuration
+    //         esp_radio::wifi::AccessPointConfig::default()
+    //             .with_ssid(env!("AP_SSID").into())
+    //             .with_channel(
+    //                 env!("AP_CHANNEL")
+    //                     .parse()
+    //                     .expect("failed to parse AP_CHANNEL"),
+    //             )
+    //             .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
+    //             .with_password(env!("AP_PASSWORD").into()),
+    //     ))
+    //     .expect("Failed to configure AP and STA");
+    // //      configure radio for WiFi LR (must be after set_config)
+    // radio_controller
+    //     .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
+    //     .expect("Failed to enable WiFi LR");
+
+    // //      start the radio controller
+    // radio_controller.start().unwrap();
+    // info!(
+    //     "SSID: {} \t channel: {}",
+    //     env!("AP_SSID"),
+    //     env!("AP_CHANNEL")
+    // );
 
     // TODO: Spawn some tasks
     let _ = spawner;

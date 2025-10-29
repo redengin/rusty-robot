@@ -26,3 +26,5 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
         esp_hal::system::software_reset()
     }
 }
+
+pub mod mesh;
