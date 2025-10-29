@@ -38,9 +38,11 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0);
 
     // create the radio mesh
-    let radioController = esp_radio::init().unwrap();
-    let mesh = mesh::new(&radioController, peripherals.WIFI);
-    // let mesh_node = mk_static!(MeshNode, MeshNode::new(peripherals.WIFI));
+    let radio_controller = esp_radio::init().unwrap();
+    let mesh = mesh::new(&radio_controller, peripherals.WIFI);
+
+
+
 
     // // initialize WiFi Long Range (LR) for mesh (both AP and STA)
     // let radio = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
