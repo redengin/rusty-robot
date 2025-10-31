@@ -1,17 +1,54 @@
-/// based upon https://github.com/stepinside/Arduino-CRSF/
+//! TBS Crossfire
+//!
+//! <pre>
+//! struct CsrfFrame {
+//!     SYNC: u8,
+//!     length: u8;
+//!     struct Data {
+//!         type: FrameType,
+//!         payload: [u8; length - 1],
+//!     }
+//!     /// crc of Data
+//!     crc: u8;
+//! }
+//! </pre>
+//! Where CRC is calculated per [CRC-8/DVB-S2](https://www.etsi.org/deliver/etsi_en/302300_302399/302307/01.02.01_60/en_302307v010201p.pdf#page=16)
 
-pub const CSRF_SYNC_BYTE: u8 = 0xC8;
+use nmea::NmeaSentence;
 
-// pub struct CsrfFrame {
-//     // SYNC BYTE
-//     pub length: u8,
-//     pub struct Data {
-//         pub frame_type: u8,
-//         // payload [u8;length]
-//     }
-//     /// crc of Data
-//     pub crc8: u8,
-// }
+pub const SYNC: u8 = 0xC8;
+
+/// https://github.com/betaflight/betaflight/blob/master/src/main/rx/crsf_protocol.h#L44
+pub enum FrameType {
+    GPS = 0x02,
+    VarioSensor = 0x07,
+    BatterySensor = 0x08,
+    BaroAltitude = 0x09,
+    HEARTBEAT = 0x0B,
+    LinkStatistics = 0x14,
+    RcChannelsPacked = 0x16,
+    SubsetRcChannelsPacked = 0x17,
+    LinkStatisticsRx = 0x1C,
+    LinkStatisticsTx = 0x1D,
+    ATTITUDE = 0x1E,
+    FlightMode = 0x21,
+    // Extended Header Frames, range: 0x28 to 0x96
+    DevicePing = 0x28,
+    DeviceInfo = 0x29,
+    ParameterSettingsEntry = 0x2B,
+    ParameterRead = 0x2C,
+    ParameterWrite = 0x2D,
+    COMMAND = 0x32,
+    // MSP commands
+    /// response request using msp sequence as command
+    MspReq = 0x7A,
+    /// reply with 58 byte chunked binary
+    MspResp = 0x7B,
+    /// write with 8 byte chunked binary (OpenTX outbound telemetry buffer limit)
+    MspWrite = 0x7C,
+    /// displayport control command
+    DisplayportCmd = 0x7D,
+}
 
 /// https://crccalc.com/?crc=123456789&method=CRC-8/DVB-S2&datatype=ascii&outtype=hex
 const CRC_TABLE: [u8; 256] = [
@@ -33,13 +70,47 @@ const CRC_TABLE: [u8; 256] = [
     0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9,
 ];
 
-/// CRC-8/DVB-S2 (https://www.etsi.org/deliver/etsi_en/302300_302399/302307/01.02.01_60/en_302307v010201p.pdf#page=16)
-pub fn crc(data: &[u8]) -> u8 {
+/// [CRC-8/DVB-S2](https://www.etsi.org/deliver/etsi_en/302300_302399/302307/01.02.01_60/en_302307v010201p.pdf#page=16)
+fn crc(data: &[u8]) -> u8 {
     let mut crc = 0;
     for b in data {
         crc = CRC_TABLE[(crc ^ b) as usize];
     }
     crc
+}
+
+/// https://github.com/betaflight/betaflight/blob/master/src/main/telemetry/crsf.c#L239
+pub struct GpsData {
+    /// TODO what are the units?
+    pub latitude: f32,
+    /// TODO what are the units?
+    pub longitude: f32,
+    /// TODO what are the units?
+    pub ground_speed: u16,
+    /// TODO what are the units?
+    pub ground_speed_course: u16,
+    /// TODO what are the units?
+    pub altitude: u16,
+    pub num_sat: u8,
+}
+impl From<nmea::Nmea> for GpsData {
+    fn from(nmea: nmea::Nmea) -> Self {
+        GpsData {
+            latitude: nmea.latitude.unwrap_or_default() as f32,
+            longitude: nmea.longitude.unwrap_or_default() as f32,
+            ground_speed: nmea.speed_over_ground.unwrap_or_default() as u16,
+            ground_speed_course: nmea.true_course.unwrap_or_default() as u16,
+            altitude: nmea.altitude.unwrap_or_default() as u16,
+            num_sat: nmea.num_of_fix_satellites.unwrap_or_default() as u8,
+        }
+    }
+}
+pub fn gpsFrame(nmea: &nmea::Nmea) -> [u8; 100] {
+    let mut ret: [u8; 100] = [0; 100];
+    // TODO implement
+    // ret[2..3] = (nmea.latitude.unwrap_or_default() as f32).to_be_bytes();
+
+    ret
 }
 
 #[cfg(test)]
