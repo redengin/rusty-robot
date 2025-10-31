@@ -3,6 +3,8 @@ pub struct MeshController<'d> {
     wifi_interfaces: esp_radio::wifi::Interfaces<'d>,
 }
 
+use rusty_robot::mk_static;
+
 /// Create a new mesh node
 /// environment variables (see config.toml)
 ///     * ESP_WIFI_CONFIG_COUNTRY_CODE - constrains radio operation per regulation
@@ -10,7 +12,7 @@ pub struct MeshController<'d> {
 ///     * AP_SSID - name of the mesh
 ///     * AP_PASSWORD - secret used to join mesh
 pub fn new<'d>(
-    inited: &'d esp_radio::Controller<'d>,
+    // inited: &'d esp_radio::Controller<'d>,
     device: esp_hal::peripherals::WIFI<'d>,
 ) -> MeshController<'d> {
     // TODO is this already handled?
@@ -18,12 +20,14 @@ pub fn new<'d>(
     // let country_code_bytes = env!("ESP_WIFI_CONFIG_COUNTRY_CODE").as_bytes();
     // let country_code: [u8; 2] = [country_code_bytes[0], country_code_bytes[1]];
 
+    let radio = mk_static!(esp_radio::Controller, esp_radio::init().unwrap());
+
     // configure radio
     let radio_config = esp_radio::wifi::Config::default();
         // .with_country_code(country_code);
 
     let (mut wifi_controller, wifi_interfaces) =
-        esp_radio::wifi::new(inited, device, radio_config).unwrap();
+        esp_radio::wifi::new(radio, device, radio_config).unwrap();
 
     // configure wifi controller
     wifi_controller
@@ -35,12 +39,12 @@ pub fn new<'d>(
             esp_radio::wifi::ClientConfig::default(),
             // AP configuration
             esp_radio::wifi::AccessPointConfig::default()
-                .with_ssid(env!("AP_SSID").into())
                 .with_channel(
                     env!("AP_CHANNEL")
                         .parse()
                         .expect("failed to parse AP_CHANNEL"),
                 )
+                .with_ssid(env!("AP_SSID").into())
                 .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
                 .with_password(env!("AP_PASSWORD").into()),
         ))

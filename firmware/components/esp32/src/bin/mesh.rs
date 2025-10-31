@@ -38,15 +38,23 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0);
 
     // create the radio mesh
-    let radio_controller = esp_radio::init().unwrap();
-    let mesh = mesh::new(&radio_controller, peripherals.WIFI);
+    // let radio_controller = esp_radio::init().unwrap();
+    // let mesh = mesh::new(&radio_controller, peripherals.WIFI);
+    let mesh = mesh::new(peripherals.WIFI);
 
-    // TODO: Spawn some tasks
-    let _ = spawner;
+    // spawn mesh controller
+    spawner.spawn(mesh_controller_task(mesh)).unwrap();
 
     loop {
         Timer::after(Duration::from_secs(1)).await;
     }
 
     // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0-rc.1/examples/src/bin
+}
+
+
+#[embassy_executor::task]
+async fn mesh_controller_task(_mesh: rusty_robot_esp32::mesh::MeshController<'static>)
+{
+    // mesh.start();
 }
