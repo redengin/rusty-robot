@@ -1,6 +1,6 @@
 /// based upon https://github.com/stepinside/Arduino-CRSF/
 
-const CSRF_SYNC_BYTE: u8 = 0xC8;
+pub const CSRF_SYNC_BYTE: u8 = 0xC8;
 
 // pub struct CsrfFrame {
 //     // SYNC BYTE
@@ -9,6 +9,7 @@ const CSRF_SYNC_BYTE: u8 = 0xC8;
 //         pub frame_type: u8,
 //         // payload [u8;length]
 //     }
+//     /// crc of Data
 //     pub crc8: u8,
 // }
 
@@ -43,12 +44,11 @@ pub fn crc(data: &[u8]) -> u8 {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
     /// https://crccalc.com/?crc=123456789&method=CRC-8/DVB-S2&datatype=ascii&outtype=hex
-    fn crc8() {
+    fn csrf_crc() {
         let input = "123456789".as_bytes().trim_ascii_end();
         assert_eq!(crc(input), 0xBC, "failed crc calculation");
     }
