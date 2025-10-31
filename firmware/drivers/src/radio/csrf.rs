@@ -33,7 +33,7 @@ const CRC_TABLE: [u8; 256] = [
 ];
 
 /// CRC-8/DVB-S2 (https://www.etsi.org/deliver/etsi_en/302300_302399/302307/01.02.01_60/en_302307v010201p.pdf#page=16)
-pub fn csrf_crc(data: &[u8]) -> u8 {
+pub fn crc(data: &[u8]) -> u8 {
     let mut crc = 0;
     for b in data {
         crc = CRC_TABLE[(crc ^ b) as usize];
@@ -47,8 +47,9 @@ mod tests {
     use super::*;
 
     #[test]
+    /// https://crccalc.com/?crc=123456789&method=CRC-8/DVB-S2&datatype=ascii&outtype=hex
     fn crc8() {
         let input = "123456789".as_bytes().trim_ascii_end();
-        assert_eq!(csrf_crc(input), 0xBC);
+        assert_eq!(crc(input), 0xBC, "failed crc calculation");
     }
 }
