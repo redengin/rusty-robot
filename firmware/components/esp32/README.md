@@ -9,5 +9,3 @@ The ESP32 can act as both an Access Point (AP) and a Station (STA)
 Benchmarks
 --------------------------------------------------------------------------------
 [mesh-benchmark](examples/mesh-benchmark.rs)
-* seeking out peers - less than 700ms
-    * connecting to a known peer - less than 

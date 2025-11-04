@@ -48,8 +48,7 @@ macro_rules! profile {
 #[esp_rtos::main]
 async fn main(_spawner: embassy_executor::Spawner) -> ! {
     // initialize the logger
-    // esp_println::logger::init_logger(LevelFilter::Trace);
-    esp_println::logger::init_logger(LevelFilter::Debug);
+    esp_println::logger::init_logger(LevelFilter::Trace);
 
     // create a heap allocator (required by esp_radio)
     const HEAP_SIZE: usize = 98767;
@@ -72,21 +71,25 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     info!("Starting benchmarking...");
     profile!("starting radio", mesh.wifi_controller.start().unwrap());
 
+    // configure scanning for peers
     let mut last_peer_time = esp_hal::time::Instant::now();
+    let scan_config = esp_radio::wifi::ScanConfig::default()
+        .with_channel(
+            env!("AP_CHANNEL")
+                .parse()
+                .expect("failed to parse AP_CHANNEL"),
+        )
+        .with_ssid(env!("AP_SSID").into());
+
     loop {
-        let scan_config = esp_radio::wifi::ScanConfig::default()
-            .with_channel(
-                env!("AP_CHANNEL")
-                    .parse()
-                    .expect("failed to parse AP_CHANNEL"),
-            )
-            .with_ssid(env!("AP_SSID").into());
-        let scan_result = profile!(
-            "wifi scan",
-            mesh.wifi_controller.scan_with_config(scan_config).unwrap()
-        );
+        // let scan_result = profile!(
+        //     "wifi scan",
+        //     mesh.wifi_controller.scan_with_config(scan_config).unwrap()
+        // );
+        let scan_result = mesh.wifi_controller.scan_with_config(scan_config).unwrap();
 
         if scan_result.len() > 0 {
+            // memo the time between finding a peer
             let now = esp_hal::time::Instant::now();
             info!(
                 "{} ms since last peer connection",
@@ -96,7 +99,7 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
 
             info!("found {} peers", scan_result.len());
             for peer in scan_result {
-                // must reconfigure wifi controller per the API
+                // must reconfigure wifi controller in order to connect
                 mesh.wifi_controller
                     .set_config(&esp_radio::wifi::ModeConfig::ApSta(
                         // STA configuration
@@ -122,8 +125,11 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
                             .with_password(env!("AP_PASSWORD").into()),
                     ))
                     .expect("Failed to reconfigure wifi");
-                profile!("peer connection", mesh.wifi_controller.connect().unwrap());
 
+                // connect
+                mesh.wifi_controller.connect().unwrap();
+
+                // disconnect
                 mesh.wifi_controller.disconnect().unwrap();
             }
         }
