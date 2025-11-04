@@ -1,9 +1,9 @@
-pub struct MeshController<'d> {
-    wifi_controller: esp_radio::wifi::WifiController<'d>,
-    wifi_interfaces: esp_radio::wifi::Interfaces<'d>,
-}
-
 use rusty_robot::mk_static;
+
+pub struct MeshController<'d> {
+    pub wifi_controller: esp_radio::wifi::WifiController<'d>,
+    pub wifi_interfaces: esp_radio::wifi::Interfaces<'d>,
+}
 
 /// Create a new mesh node
 /// environment variables (see config.toml)
@@ -24,7 +24,7 @@ pub fn new<'d>(
 
     // configure radio
     let radio_config = esp_radio::wifi::Config::default();
-        // .with_country_code(country_code);
+    // .with_country_code(country_code);
 
     let (mut wifi_controller, wifi_interfaces) =
         esp_radio::wifi::new(radio, device, radio_config).unwrap();
@@ -49,6 +49,7 @@ pub fn new<'d>(
                 .with_password(env!("AP_PASSWORD").into()),
         ))
         .expect("Failed to configure AP and STA");
+
     //      configure radio for WiFi LR (must be after set_config)
     wifi_controller
         .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
@@ -62,6 +63,44 @@ pub fn new<'d>(
 
 impl MeshController<'_> {
     pub fn start(mut self) -> Result<(), esp_radio::wifi::WifiError> {
+        // configure WiFi events
+        // esp_radio::wifi::event::StaStart::replace_handler(f)
+
         self.wifi_controller.start()
+    }
+
+    pub fn connect(
+        mut self,
+        peer: esp_radio::wifi::AccessPointInfo,
+    ) -> Result<(), esp_radio::wifi::WifiError> {
+        // must reconfigure the wifi_controller per the API
+        // FIXME clean up this config creation
+        self.wifi_controller
+            .set_config(&esp_radio::wifi::ModeConfig::ApSta(
+                // STA configuration
+                esp_radio::wifi::ClientConfig::default()
+                    .with_channel(
+                        env!("AP_CHANNEL")
+                            .parse()
+                            .expect("failed to parse AP_CHANNEL"),
+                    )
+                    .with_ssid(env!("AP_SSID").into())
+                    .with_bssid(peer.bssid)
+                    .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
+                    .with_password(env!("AP_PASSWORD").into()),
+                // AP configuration
+                esp_radio::wifi::AccessPointConfig::default()
+                    .with_channel(
+                        env!("AP_CHANNEL")
+                            .parse()
+                            .expect("failed to parse AP_CHANNEL"),
+                    )
+                    .with_ssid(env!("AP_SSID").into())
+                    .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
+                    .with_password(env!("AP_PASSWORD").into()),
+            ))
+            .expect("Failed to configure AP and STA");
+
+        self.wifi_controller.connect()
     }
 }

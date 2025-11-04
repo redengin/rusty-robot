@@ -38,8 +38,6 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0);
 
     // create the radio mesh
-    // let radio_controller = esp_radio::init().unwrap();
-    // let mesh = mesh::new(&radio_controller, peripherals.WIFI);
     let mesh = mesh::new(peripherals.WIFI);
 
     // spawn mesh controller
