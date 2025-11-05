@@ -38,10 +38,11 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0);
 
     // create the radio mesh
-    let mesh = mesh::new(peripherals.WIFI);
+    let protocols = esp_radio::wifi::Protocol::P802D11LR;
+    let mesh = mesh::Esp32MeshController::new(peripherals.WIFI, protocols);
 
     // spawn mesh controller
-    spawner.spawn(mesh_controller_task(mesh)).unwrap();
+    // spawner.spawn(mesh_controller_task(mesh)).unwrap();
 
     loop {
         Timer::after(Duration::from_secs(1)).await;
