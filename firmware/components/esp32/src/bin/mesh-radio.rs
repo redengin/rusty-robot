@@ -52,8 +52,8 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 }
 
 
-#[embassy_executor::task]
-async fn mesh_controller_task(_mesh: rusty_robot_esp32::mesh::MeshController<'static>)
-{
-    // mesh.start();
-}
+// #[embassy_executor::task]
+// async fn mesh_controller_task(_mesh: rusty_robot_esp32::mesh::MeshController<'static>)
+// {
+//     // mesh.start();
+// }
