@@ -11,23 +11,7 @@ use rusty_robot_esp32::{self as _};
 // provide logging support
 use log::*;
 
-use rusty_robot_esp32::mesh;
-
-// provide scheduler api
-use embassy_time::{Duration, Timer};
-
 // provide profiling macros
-// macro_rules! profile {
-//     ($label::&str ) => {
-//         {
-//             let start = esp_hal::time::Instant::now();
-//             let r = $expression;
-//             let end = esp_hal::time::Instant::now();
-//             debug!("{} took {} ms", $label, (end - start).as_millis());
-//             r
-//         }
-//     };
-// }
 macro_rules! profile {
     ($label:tt, $expression:expr) => {{
         let start = esp_hal::time::Instant::now();
@@ -43,6 +27,36 @@ macro_rules! profile {
         trace!("{} took {} ms", $label, (end - start).as_millis());
         r
     }};
+}
+
+const CHANNEL: u8 = 11;
+const SSID: &str = "mesh-benchmark";
+const PASSWORD: &str = "mesh-benchmark-password";
+
+fn create_wifi_config(peer_bssid: Option<[u8; 6]>) -> esp_radio::wifi::ModeConfig {
+    return match peer_bssid {
+        Some(bssid) => esp_radio::wifi::ModeConfig::ApSta(
+            esp_radio::wifi::ClientConfig::default()
+                .with_channel(CHANNEL)
+                .with_ssid(SSID.into())
+                .with_bssid(bssid)
+                .with_auth_method(esp_radio::wifi::AuthMethod::Wpa3Personal)
+                .with_password(PASSWORD.into()),
+            esp_radio::wifi::AccessPointConfig::default()
+                .with_channel(CHANNEL)
+                .with_ssid(SSID.into())
+                .with_auth_method(esp_radio::wifi::AuthMethod::Wpa3Personal)
+                .with_password(PASSWORD.into()),
+        ),
+        None => esp_radio::wifi::ModeConfig::ApSta(
+            esp_radio::wifi::ClientConfig::default(),
+            esp_radio::wifi::AccessPointConfig::default()
+                .with_channel(CHANNEL)
+                .with_ssid(SSID.into())
+                .with_auth_method(esp_radio::wifi::AuthMethod::Wpa3Personal)
+                .with_password(PASSWORD.into()),
+        ),
+    };
 }
 
 #[esp_rtos::main]
@@ -65,28 +79,29 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0);
 
     // create the radio mesh
-    let mut mesh = mesh::new(peripherals.WIFI);
+    let radio = esp_radio::init().unwrap();
+    let radio_config = esp_radio::wifi::Config::default();
+    let (mut wifi_controller, _wifi_interfaces) =
+        esp_radio::wifi::new(&radio, peripherals.WIFI, radio_config).unwrap();
+    wifi_controller
+        .set_config(&create_wifi_config(None))
+        .unwrap();
+    wifi_controller
+        .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
+        .unwrap();
 
     // benchmarking....
     info!("Starting benchmarking...");
-    profile!("starting radio", mesh.wifi_controller.start().unwrap());
+    profile!("starting radio", wifi_controller.start().unwrap());
 
     // configure scanning for peers
-    let mut last_peer_time = esp_hal::time::Instant::now();
     let scan_config = esp_radio::wifi::ScanConfig::default()
-        .with_channel(
-            env!("AP_CHANNEL")
-                .parse()
-                .expect("failed to parse AP_CHANNEL"),
-        )
-        .with_ssid(env!("AP_SSID").into());
+        .with_channel(CHANNEL)
+        .with_ssid(SSID.into());
+    let mut last_peer_time = esp_hal::time::Instant::now();
 
     loop {
-        // let scan_result = profile!(
-        //     "wifi scan",
-        //     mesh.wifi_controller.scan_with_config(scan_config).unwrap()
-        // );
-        let scan_result = mesh.wifi_controller.scan_with_config(scan_config).unwrap();
+        let scan_result = wifi_controller.scan_with_config(scan_config).unwrap();
 
         if scan_result.len() > 0 {
             // memo the time between finding a peer
@@ -97,43 +112,20 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
             );
             last_peer_time = now;
 
+            // connect to peers
             info!("found {} peers", scan_result.len());
             for peer in scan_result {
                 // must reconfigure wifi controller in order to connect
-                mesh.wifi_controller
-                    .set_config(&esp_radio::wifi::ModeConfig::ApSta(
-                        // STA configuration
-                        esp_radio::wifi::ClientConfig::default()
-                            .with_channel(
-                                env!("AP_CHANNEL")
-                                    .parse()
-                                    .expect("failed to parse AP_CHANNEL"),
-                            )
-                            .with_ssid(env!("AP_SSID").into())
-                            .with_bssid(peer.bssid)
-                            .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
-                            .with_password(env!("AP_PASSWORD").into()),
-                        // AP configuration
-                        esp_radio::wifi::AccessPointConfig::default()
-                            .with_channel(
-                                env!("AP_CHANNEL")
-                                    .parse()
-                                    .expect("failed to parse AP_CHANNEL"),
-                            )
-                            .with_ssid(env!("AP_SSID").into())
-                            .with_auth_method(esp_radio::wifi::AuthMethod::Wpa2Personal)
-                            .with_password(env!("AP_PASSWORD").into()),
-                    ))
-                    .expect("Failed to reconfigure wifi");
+                wifi_controller
+                    .set_config(&create_wifi_config(Some(peer.bssid)))
+                    .unwrap();
 
                 // connect
-                mesh.wifi_controller.connect().unwrap();
+                wifi_controller.connect().unwrap();
 
                 // disconnect
-                mesh.wifi_controller.disconnect().unwrap();
+                wifi_controller.disconnect().unwrap();
             }
         }
-
-        // Timer::after(Duration::from_secs(1)).await;
     }
 }
