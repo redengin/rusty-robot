@@ -13,7 +13,7 @@ log = "*"
 esp-println = { version = "*", features = ["esp32", "log-04"] }
 
 esp-bootloader-esp-idf = { version = "*", features = ["esp32"] }
-esp-hal = { version = "=1.0.0-rc.1", features = ["esp32", "unstable"] }
+esp-hal = { version = "*", features = ["esp32", "unstable"] }
 esp-rtos = { version = "*", features = [
     "embassy",
     "esp-alloc",
