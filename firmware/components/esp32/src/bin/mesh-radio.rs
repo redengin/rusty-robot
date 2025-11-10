@@ -7,7 +7,7 @@
 )]
 
 // provide panic handler
-use rusty_robot_esp32::{self as _, mesh};
+use rusty_robot_esp32::{self as _, mesh::{self, Esp32MeshController}};
 
 use log::*;
 
@@ -22,6 +22,7 @@ esp_bootloader_esp_idf::esp_app_desc!();
 async fn main(spawner: embassy_executor::Spawner) -> ! {
     // initialize the logger
     esp_println::logger::init_logger_from_env();
+    trace!("initializing...");
 
     // create a heap allocator (required by esp_radio)
     const HEAP_SIZE: usize = 98767;
@@ -42,7 +43,8 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     let mesh = mesh::Esp32MeshController::new(peripherals.WIFI, protocols);
 
     // spawn mesh controller
-    // spawner.spawn(mesh_controller_task(mesh)).unwrap();
+    spawner.spawn(mesh_controller_task(mesh)).unwrap();
+    // <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::start_ap(mesh);
 
     loop {
         Timer::after(Duration::from_secs(1)).await;
@@ -52,8 +54,18 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 }
 
 
-// #[embassy_executor::task]
-// async fn mesh_controller_task(_mesh: rusty_robot_esp32::mesh::MeshController<'static>)
-// {
-//     // mesh.start();
-// }
+/// prototype of a generic mesh controller
+#[embassy_executor::task]
+async fn mesh_controller_task(mesh: rusty_robot_esp32::mesh::Esp32MeshController<'static>)
+{
+    let mesh_controller = mesh as Esp32MeshController;
+
+    use rusty_robot_drivers::radio::mesh::{MeshConfig};
+    let mesh_config = MeshConfig::new(
+        env!("MESH_CHANNEL").parse().expect("channel must be a number [1..14]"),
+        env!("MESH_SSID"),
+        env!("MESH_PASSWORD")
+    );
+
+
+}

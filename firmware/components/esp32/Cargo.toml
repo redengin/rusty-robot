@@ -37,6 +37,7 @@ esp-alloc = "*"
 
 # rusty-robot shared libraries
 rusty-robot = { path = "../../common" }
+rusty-robot-drivers = { path = "../../drivers" }
 
 [profile.dev]
 # Rust debug is too slow.
