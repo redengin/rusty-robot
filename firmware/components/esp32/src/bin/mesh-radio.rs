@@ -56,9 +56,9 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 
 /// prototype of a generic mesh controller
 #[embassy_executor::task]
-async fn mesh_controller_task(mesh: rusty_robot_esp32::mesh::Esp32MeshController<'static>)
+async fn mesh_controller_task(mesh_controller: Esp32MeshController<'static>)
 {
-    let mesh_controller = mesh as Esp32MeshController;
+    // let mesh_controller = mesh as rusty_robot_drivers::radio::mesh::MeshNode;
 
     use rusty_robot_drivers::radio::mesh::{MeshConfig};
     let mesh_config = MeshConfig::new(
@@ -66,6 +66,9 @@ async fn mesh_controller_task(mesh: rusty_robot_esp32::mesh::Esp32MeshController
         env!("MESH_SSID"),
         env!("MESH_PASSWORD")
     );
+
+    // start the radio
+    <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::start(mesh_controller, mesh_config);
 
 
 }

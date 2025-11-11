@@ -41,7 +41,10 @@ impl Mesh {
 }
 
 pub trait MeshNode {
+    /// initialize the radios and begin broadcasting SSID
     fn start(self, config: MeshConfig);
+
+    fn scan(self, config: MeshConfig);
 }
 
 // pub struct ScanEntry {

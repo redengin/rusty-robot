@@ -1,15 +1,14 @@
+use log::*;
+
 use rusty_robot::mk_static;
 
 extern crate alloc;
-use alloc::string::String;
 
 // pub struct MeshConfig {
 //     pub channel: u8,
 //     pub ssid: String,
 //     pub password: String,
 // }
-
-use rusty_robot_drivers::radio::mesh::MeshConfig;
 
 // impl MeshConfig {
 //     pub fn from_env() -> Self {
@@ -73,9 +72,12 @@ impl Esp32MeshController<'_> {
 
         // set the wifi protocols
         //  must set_mode() before setting protocol
-        wifi_controller.set_mode(esp_radio::wifi::WifiMode::ApSta).unwrap();
+        wifi_controller
+            .set_mode(esp_radio::wifi::WifiMode::ApSta)
+            .unwrap();
         wifi_controller.set_protocol(protocols.into()).unwrap();
 
+        trace!("created the radio controller");
         Esp32MeshController {
             wifi_controller,
             wifi_interfaces,
@@ -83,10 +85,44 @@ impl Esp32MeshController<'_> {
     }
 }
 
+use rusty_robot_drivers::radio::mesh::MeshConfig;
+trait MeshConfigExt {
+    fn to_mode_config(&self) -> esp_radio::wifi::ModeConfig;
+    fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_>;
+}
+impl MeshConfigExt for MeshConfig {
+    fn to_mode_config(&self) -> esp_radio::wifi::ModeConfig {
+        use esp_radio::wifi::{self, AccessPointConfig, ClientConfig};
+        esp_radio::wifi::ModeConfig::ApSta(
+            ClientConfig::default(),
+            AccessPointConfig::default()
+                .with_channel(self.channel)
+                .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
+                .with_auth_method(wifi::AuthMethod::Wpa3Personal)
+                .with_password(str::from_utf8(&self.password).unwrap().into()),
+        )
+    }
 
-impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_>
-{
+    fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_> {
+        esp_radio::wifi::ScanConfig::default()
+            .with_channel(self.channel)
+            .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
+    }
+}
+
+impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
     fn start(mut self, config: MeshConfig) {
+        self.wifi_controller
+            .set_config(&config.to_mode_config())
+            .unwrap();
+
         self.wifi_controller.start().unwrap();
+    }
+
+    fn scan(mut self, config: MeshConfig) {
+        let _results = self
+            .wifi_controller
+            .scan_with_config(config.to_scan_config())
+            .unwrap();
     }
 }
