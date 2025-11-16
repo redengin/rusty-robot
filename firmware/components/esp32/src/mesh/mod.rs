@@ -95,6 +95,8 @@ fn esp32_scan_to_scan_results(results: alloc::vec::Vec<AccessPointInfo>) -> mesh
     ret
 }
 #[cfg(test)]
+// FIXME allow tests to run anywhere
+extern crate std;
 mod scan_results_tests {
     use super::*;
     use esp_radio::wifi::AccessPointInfo;
@@ -115,7 +117,10 @@ mod scan_results_tests {
         }
         // act
         let scan_results = esp32_scan_to_scan_results(results);
-        assert!(scan_results.is_full(), "setup failed to overflow ScanResults");
+        assert!(
+            scan_results.is_full(),
+            "setup failed to overflow ScanResults"
+        );
         // assert that lowest rssi entry was replaced
         assert!(scan_results[0].bssid == max_i, "didn't replace lower rssi");
         assert!(scan_results[0].rssi == max_i, "didn't replace lower rssi");
