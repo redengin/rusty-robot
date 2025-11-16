@@ -1,3 +1,5 @@
+use rusty_robot::arrayvec::ArrayVec;
+
 pub type Ssid = [u8; 32];
 pub type Password = [u8; 63];
 pub type Bssid = [u8; 6];
@@ -8,16 +10,15 @@ pub struct MeshConfig {
     pub password: Password,
 
     /// bssid of the root
-    pub root: Option<Bssid>
+    pub root: Option<Bssid>,
 }
 impl MeshConfig {
-    pub fn new(channel: u8, ssid: &str, password: &str) -> Self
-    {
+    pub fn new(channel: u8, ssid: &str, password: &str) -> Self {
         Self {
             channel: channel,
             ssid: ssid.as_bytes().try_into().expect("ssid too long"),
             password: password.as_bytes().try_into().expect("password too long"),
-            root: None
+            root: None,
         }
     }
 }
@@ -35,7 +36,7 @@ impl Mesh {
         loop {
             // handle all current connections to AP
 
-            // scan for nodes 
+            // scan for nodes
         }
     }
 }
@@ -44,12 +45,12 @@ pub trait MeshNode {
     /// initialize the radios and begin broadcasting SSID
     fn start(self, config: MeshConfig);
 
-    fn scan(self, config: MeshConfig);
+    fn scan(self, config: MeshConfig) -> ScanResults;
 }
+pub struct ScanEntry {
+    pub bssid: Bssid,
+    /// signal strength in dBm (decibel-milliwatts)
+    pub rssi: i8,
+}
+pub type ScanResults = ArrayVec<ScanEntry, 4>;
 
-// pub struct ScanEntry {
-//     // hardware id of the node
-//     pub bssid: Bssid,
-//     // signal strength
-//     pub rssi: i8,
-// }

@@ -7,3 +7,4 @@ edition = "2024"
 [dependencies]
 # log = { workspace = true }
 static_cell = "*"
+arrayvec = { version = "*", default-features = false }
