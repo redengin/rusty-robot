@@ -24,7 +24,7 @@ impl MeshConfig {
 }
 
 pub struct Mesh {
-    config: MeshConfig,
+    pub config: MeshConfig,
 }
 
 impl Mesh {

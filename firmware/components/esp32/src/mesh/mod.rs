@@ -96,9 +96,9 @@ fn esp32_scan_to_scan_results(results: alloc::vec::Vec<AccessPointInfo>) -> mesh
 }
 #[cfg(test)]
 // FIXME allow tests to run anywhere
-extern crate std;
+// extern crate std;
 mod scan_results_tests {
-    use super::*;
+    // use super::*;
     use esp_radio::wifi::AccessPointInfo;
     use rusty_robot_drivers::radio::mesh::ScanResults;
 

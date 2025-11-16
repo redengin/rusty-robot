@@ -14,8 +14,6 @@
 //! </pre>
 //! Where CRC is calculated per [CRC-8/DVB-S2](https://www.etsi.org/deliver/etsi_en/302300_302399/302307/01.02.01_60/en_302307v010201p.pdf#page=16)
 
-use nmea::NmeaSentence;
-
 pub const SYNC: u8 = 0xC8;
 
 /// https://github.com/betaflight/betaflight/blob/master/src/main/rx/crsf_protocol.h#L44
@@ -105,11 +103,11 @@ impl From<nmea::Nmea> for GpsData {
         }
     }
 }
-pub fn gpsFrame(nmea: &nmea::Nmea) -> [u8; 100] {
-    let mut ret: [u8; 100] = [0; 100];
+pub fn gps_frame(_nmea: &nmea::Nmea) -> [u8; 100] {
+    let ret: [u8; 100] = [0; 100];
     // TODO implement
     // ret[2..3] = (nmea.latitude.unwrap_or_default() as f32).to_be_bytes();
-
+    let _ = crc(&ret);
     ret
 }
 
