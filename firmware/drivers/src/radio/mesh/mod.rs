@@ -75,7 +75,7 @@ impl ScanResults {
 
     /// adds the entry to the list (descending rssi order)
     /// if entry's rssi is not greater than all other entries, it is dropped
-    pub fn push(&mut self, entry: ScanEntry) {
+    pub fn add(&mut self, entry: ScanEntry) {
         if self.results.is_empty() {
             self.results.push(entry);
         }
@@ -119,7 +119,7 @@ mod scan_results_tests {
         let mut scan_results = ScanResults::new();
         // act
         for i in 0..(MAX_SCAN_RESULTS + 1) {
-            scan_results.push(ScanEntry {
+            scan_results.add(ScanEntry {
                 bssid: Default::default(),
                 rssi: i as i8,
             });

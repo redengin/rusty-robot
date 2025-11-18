@@ -82,7 +82,7 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
         // create the response
         let mut ret = mesh::ScanResults::new();
         for entry in results {
-            ret.push(ScanEntry {
+            ret.add(ScanEntry {
                 bssid: entry.bssid,
                 rssi: entry.signal_strength,
             })
