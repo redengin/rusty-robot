@@ -1,4 +1,4 @@
-use rusty_robot::arrayvec::ArrayVec;
+use rusty_robot::arrayvec::{self, ArrayVec};
 
 pub type Ssid = [u8; 32];
 pub type Password = [u8; 63];
@@ -47,15 +47,24 @@ pub trait MeshNode {
 
     fn scan(self, config: MeshConfig) -> ScanResults;
 }
+
+#[derive(Debug)]
 pub struct ScanEntry {
     pub bssid: Bssid,
     /// signal strength in dBm (decibel-milliwatts)
     pub rssi: i8,
 }
-// pub type ScanResults = ArrayVec<ScanEntry, 4>;
+
 const MAX_SCAN_RESULTS: usize = 4;
+/// fixed size vector of ScanEntry (ordered in descending signal strength)
 pub struct ScanResults {
-    pub results: ArrayVec<ScanEntry, MAX_SCAN_RESULTS>,
+    results: ArrayVec<ScanEntry, MAX_SCAN_RESULTS>,
+}
+impl core::ops::Index<usize> for ScanResults {
+    type Output = ScanEntry;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.results[index]
+    }
 }
 impl ScanResults {
     pub fn new() -> Self {
@@ -64,36 +73,44 @@ impl ScanResults {
         }
     }
 
-    /// adds the entry to the list if
-    ///    * vector not full
-    ///    * or rssi is larger than all other entries
+    /// adds the entry to the list (descending rssi order)
+    /// if entry's rssi is not greater than all other entries, it is dropped
     pub fn push(&mut self, entry: ScanEntry) {
-        if self.results.is_full() {
-            // scan the vector and replace the lowest rssi entry if this rssi is greater
-            let mut lowest_index = 0;
-            let mut lowest_rssi = self.results[0].rssi;
-            for i in 1..self.results.capacity() {
-                if self.results[i].rssi < lowest_rssi {
-                    lowest_index = i;
-                    lowest_rssi = self.results[i].rssi;
-                }
-            }
-            if entry.rssi > lowest_rssi {
-                // replace the entry
-                self.results[lowest_index] = entry;
-            }
-        } else {
-            // not full, so append this entry
+        if self.results.is_empty() {
             self.results.push(entry);
         }
+        else {
+            // find an insertion point (rssi smaller than new entry)
+            for i in 0..self.results.len()
+            {
+                if self.results[i].rssi < entry.rssi {
+                    // if full, drop the last entry
+                    if self.results.is_full() {
+                        self.results.pop();
+                    }
+                    self.results.insert(i, entry);
+                    return;
+                }
+            }
+            // wasn't inserted, so can we append?
+            if !self.results.is_full() {
+                self.results.push(entry);
+            }
+        }
+    }
+}
+impl IntoIterator for ScanResults {
+    type Item = ScanEntry;
+
+    type IntoIter = arrayvec::IntoIter<ScanEntry, MAX_SCAN_RESULTS>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.results.into_iter()
     }
 }
 
 #[cfg(test)]
-// extern crate std;
 mod scan_results_tests {
-    use core::char::MAX;
-
     use super::*;
 
     #[test]
@@ -101,14 +118,24 @@ mod scan_results_tests {
         // setup
         let mut scan_results = ScanResults::new();
         // act
-        for i in 0..(MAX_SCAN_RESULTS + 1)
-        {
+        for i in 0..(MAX_SCAN_RESULTS + 1) {
             scan_results.push(ScanEntry {
                 bssid: Default::default(),
-                rssi: i as i8
+                rssi: i as i8,
             });
         }
         // assert that lowest rssi entry was replaced
-        assert_eq!(scan_results.results[0].rssi, (MAX_SCAN_RESULTS as i8), "didn't replace lower rssi");
+        assert_eq!(
+            scan_results[0].rssi,
+            (MAX_SCAN_RESULTS as i8),
+            "didn't replace lower rssi"
+        );
+
+        // TEST USE - print the entries
+        // for e in scan_results {
+        //     extern crate std;
+        //     use std::println;
+        //     println!("entry: [{:?}]", e);
+        // }
     }
 }
