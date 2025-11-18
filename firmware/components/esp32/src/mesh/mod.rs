@@ -38,7 +38,7 @@ impl Esp32MeshController<'_> {
     }
 }
 
-use rusty_robot_drivers::radio::mesh;
+use rusty_robot_drivers::radio::mesh::{self, ScanEntry};
 trait MeshConfigExt {
     fn to_mode_config(&self) -> esp_radio::wifi::ModeConfig;
     fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_>;
@@ -63,70 +63,6 @@ impl MeshConfigExt for mesh::MeshConfig {
     }
 }
 
-use esp_radio::wifi::AccessPointInfo;
-extern crate alloc;
-fn esp32_scan_to_scan_results(results: alloc::vec::Vec<AccessPointInfo>) -> mesh::ScanResults {
-    let mut ret = mesh::ScanResults::new();
-
-    for result in &results {
-        if ret.is_full() {
-            // scan the vector and replace the lowest rssi entry if this rssi is greater
-            let mut lowest_index = 0;
-            let mut lowest_rssi = ret[0].rssi;
-            for i in 1..ret.capacity() {
-                if ret[i].rssi < lowest_rssi {
-                    lowest_index = i;
-                    lowest_rssi = ret[i].rssi;
-                }
-            }
-            if result.signal_strength > lowest_rssi {
-                ret[lowest_index].bssid = result.bssid;
-                ret[lowest_index].rssi = result.signal_strength;
-            }
-        } else {
-            // not full, so append this entry
-            ret.push(mesh::ScanEntry {
-                bssid: result.bssid,
-                rssi: result.signal_strength,
-            })
-        }
-    }
-
-    ret
-}
-#[cfg(test)]
-// FIXME allow tests to run anywhere
-// extern crate std;
-mod scan_results_tests {
-    // use super::*;
-    use esp_radio::wifi::AccessPointInfo;
-    use rusty_robot_drivers::radio::mesh::ScanResults;
-
-    #[test]
-    fn replaces_lowest_rssi_entry() {
-        // setup - create an oversized (+1) vector of incremental rssi
-        let mut results = alloc::vec::Vec::<AccessPointInfo>::new();
-        let dummy = ScanResults::new();
-        let max_i = dummy.capacity() + 1;
-        for i in 0..max_i {
-            results.push(AccessPointInfo {
-                bssid: i,
-                signal_strength: i,
-                ..Default::default()
-            });
-        }
-        // act
-        let scan_results = esp32_scan_to_scan_results(results);
-        assert!(
-            scan_results.is_full(),
-            "setup failed to overflow ScanResults"
-        );
-        // assert that lowest rssi entry was replaced
-        assert!(scan_results[0].bssid == max_i, "didn't replace lower rssi");
-        assert!(scan_results[0].rssi == max_i, "didn't replace lower rssi");
-    }
-}
-
 impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
     fn start(mut self, config: mesh::MeshConfig) {
         self.wifi_controller
@@ -137,11 +73,20 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
     }
 
     fn scan(mut self, config: mesh::MeshConfig) -> mesh::ScanResults {
+        // perform the scan
         let results = self
             .wifi_controller
             .scan_with_config(config.to_scan_config())
             .unwrap();
 
-        esp32_scan_to_scan_results(results)
+        // create the response
+        let mut ret = mesh::ScanResults::new();
+        for entry in results {
+            ret.push(ScanEntry {
+                bssid: entry.bssid,
+                rssi: entry.signal_strength,
+            })
+        }
+        ret
     }
 }
