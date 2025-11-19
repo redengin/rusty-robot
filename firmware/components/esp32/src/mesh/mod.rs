@@ -38,8 +38,8 @@ impl Esp32MeshController<'_> {
     }
 }
 
-use rusty_robot_drivers::radio::mesh::Bssid;
 use rusty_robot_drivers::radio::mesh::MeshConfig;
+use rusty_robot_drivers::radio::mesh::Bssid;
 trait MeshConfigExt {
     fn to_mode_config(&self, peer: Option<Bssid>) -> esp_radio::wifi::ModeConfig;
     fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_>;
@@ -71,15 +71,6 @@ impl MeshConfigExt for MeshConfig {
                     .with_password(str::from_utf8(&self.password).unwrap().into()),
             ),
         };
-
-        // esp_radio::wifi::ModeConfig::ApSta(
-        //     ClientConfig::default(),
-        //     AccessPointConfig::default()
-        //         .with_channel(self.channel)
-        //         .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
-        //         .with_auth_method(AuthMethod::Wpa3Personal)
-        //         .with_password(str::from_utf8(&self.password).unwrap().into()),
-        // )
     }
 
     fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_> {
