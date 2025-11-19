@@ -43,7 +43,7 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 
     // create the radio mesh
     let protocols = esp_radio::wifi::Protocol::P802D11LR;
-    let mesh = mesh::Esp32MeshController::new(peripherals.WIFI, protocols);
+    let mut mesh = mesh::Esp32MeshController::new(peripherals.WIFI, protocols);
 
     // spawn mesh controller
     spawner.spawn(mesh_controller_task(mesh)).unwrap();
@@ -51,6 +51,7 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 
     loop {
         Timer::after(Duration::from_secs(1)).await;
+        // mesh.wifi_controller.wait_for_event(esp_radio::wifi::WifiEvent::ApStaConnected).await;
     }
 }
 
@@ -58,7 +59,6 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 /// FIXME
 #[embassy_executor::task]
 async fn mesh_controller_task(mut mesh_controller: Esp32MeshController<'static>) {
-    // let mesh_controller = mesh as rusty_robot_drivers::radio::mesh::MeshNode;
 
     use rusty_robot_drivers::radio::mesh::MeshConfig;
     let mesh_config = MeshConfig::new(
@@ -98,7 +98,7 @@ async fn mesh_controller_task(mut mesh_controller: Esp32MeshController<'static>)
                 <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::is_connected(
                     &mesh_controller,
                 );
-            info!("wifi is connected: {:?}", is_connected);
+            info!("wifi is connected: {:?} {:?}", entry.bssid, is_connected);
         }
     }
 }

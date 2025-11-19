@@ -2,7 +2,7 @@ use log::*;
 use rusty_robot::mk_static;
 
 pub struct Esp32MeshController<'d> {
-    wifi_controller: esp_radio::wifi::WifiController<'d>,
+    pub wifi_controller: esp_radio::wifi::WifiController<'d>,
     wifi_interfaces: esp_radio::wifi::Interfaces<'d>,
 }
 
