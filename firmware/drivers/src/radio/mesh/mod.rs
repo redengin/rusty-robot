@@ -1,13 +1,14 @@
-use rusty_robot::arrayvec::{self, ArrayVec};
+// provide String support (requires alloc)
+extern crate alloc;
+use alloc::string::String;
 
-pub type Ssid = [u8; 32];
-pub type Password = [u8; 63];
+/// unique identifier for wifi nodes
 pub type Bssid = [u8; 6];
 
 pub struct MeshConfig {
     pub channel: u8,
-    pub ssid: Ssid,
-    pub password: Password,
+    pub ssid: String,
+    pub password: String,
 
     /// bssid of the root
     pub root: Option<Bssid>,
@@ -16,8 +17,8 @@ impl MeshConfig {
     pub fn new(channel: u8, ssid: &str, password: &str) -> Self {
         Self {
             channel: channel,
-            ssid: ssid.as_bytes().try_into().expect("ssid too long"),
-            password: password.as_bytes().try_into().expect("password too long"),
+            ssid: ssid.into(),
+            password: password.into(),
             root: None,
         }
     }
@@ -45,11 +46,17 @@ pub trait MeshNode {
     /// initialize the radios and begin broadcasting SSID
     fn start(&mut self, config: &MeshConfig);
 
+    /// determine if radio is operational
+    fn is_started(&self) -> bool;
+
     /// scan for APs
     fn scan(&mut self, config: &MeshConfig) -> ScanResults;
 
     /// connect to peer
     fn connect(&mut self, config: &MeshConfig, peer: Bssid);
+
+    /// determine if connected to peer
+    fn is_connected(&self) -> bool;
 }
 
 #[derive(Debug)]
@@ -59,6 +66,7 @@ pub struct ScanEntry {
     pub rssi: i8,
 }
 
+use rusty_robot::arrayvec::{self, ArrayVec};
 const MAX_SCAN_RESULTS: usize = 4;
 /// fixed size vector of ScanEntry (ordered in descending signal strength)
 pub struct ScanResults {
@@ -82,11 +90,9 @@ impl ScanResults {
     pub fn add(&mut self, entry: ScanEntry) {
         if self.results.is_empty() {
             self.results.push(entry);
-        }
-        else {
+        } else {
             // find an insertion point (rssi smaller than new entry)
-            for i in 0..self.results.len()
-            {
+            for i in 0..self.results.len() {
                 if self.results[i].rssi < entry.rssi {
                     // if full, drop the last entry
                     if self.results.is_full() {
@@ -96,7 +102,7 @@ impl ScanResults {
                     return;
                 }
             }
-            // wasn't inserted, so can we append?
+            // wasn't inserted, so append if not full
             if !self.results.is_full() {
                 self.results.push(entry);
             }

@@ -7,7 +7,10 @@
 )]
 
 // provide panic handler
-use rusty_robot_esp32::{self as _, mesh::{self, Esp32MeshController}};
+use rusty_robot_esp32::{
+    self as _,
+    mesh::{self, Esp32MeshController},
+};
 
 use log::*;
 
@@ -51,31 +54,51 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     }
 }
 
-
 /// prototype of a generic mesh controller
 /// FIXME
 #[embassy_executor::task]
-async fn mesh_controller_task(mut mesh_controller: Esp32MeshController<'static>)
-{
+async fn mesh_controller_task(mut mesh_controller: Esp32MeshController<'static>) {
     // let mesh_controller = mesh as rusty_robot_drivers::radio::mesh::MeshNode;
 
-    use rusty_robot_drivers::radio::mesh::{MeshConfig};
+    use rusty_robot_drivers::radio::mesh::MeshConfig;
     let mesh_config = MeshConfig::new(
-        env!("MESH_CHANNEL").parse().expect("channel must be a number [1..14]"),
+        env!("MESH_CHANNEL")
+            .parse()
+            .expect("channel must be a number [1..14]"),
         env!("MESH_SSID"),
-        env!("MESH_PASSWORD")
+        env!("MESH_PASSWORD"),
     );
 
     // start the radio
-    <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::start(&mut mesh_controller, &mesh_config);
+    <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::start(
+        &mut mesh_controller,
+        &mesh_config,
+    );
+    let is_started =
+        <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::is_started(
+            &mesh_controller,
+        );
+    info!("wifi is started: {:?}", is_started);
 
     loop {
-        let scan_results = <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::scan(&mut mesh_controller, &mesh_config);
+        let scan_results =
+            <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::scan(
+                &mut mesh_controller,
+                &mesh_config,
+            );
 
-        for entry in scan_results
-        {
-            
+        for entry in scan_results {
+            // connect to peer
+            <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::connect(
+                &mut mesh_controller,
+                &mesh_config,
+                entry.bssid,
+            );
+            let is_connected =
+                <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::is_connected(
+                    &mesh_controller,
+                );
+            info!("wifi is connected: {:?}", is_connected);
         }
     }
-
 }
