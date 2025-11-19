@@ -38,22 +38,48 @@ impl Esp32MeshController<'_> {
     }
 }
 
-use rusty_robot_drivers::radio::mesh::{self, ScanEntry};
+use rusty_robot_drivers::radio::mesh::Bssid;
+use rusty_robot_drivers::radio::mesh::MeshConfig;
 trait MeshConfigExt {
-    fn to_mode_config(&self) -> esp_radio::wifi::ModeConfig;
+    fn to_mode_config(&self, peer: Option<Bssid>) -> esp_radio::wifi::ModeConfig;
     fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_>;
 }
-impl MeshConfigExt for mesh::MeshConfig {
-    fn to_mode_config(&self) -> esp_radio::wifi::ModeConfig {
-        use esp_radio::wifi::{self, AccessPointConfig, ClientConfig};
-        esp_radio::wifi::ModeConfig::ApSta(
-            ClientConfig::default(),
-            AccessPointConfig::default()
-                .with_channel(self.channel)
-                .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
-                .with_auth_method(wifi::AuthMethod::Wpa3Personal)
-                .with_password(str::from_utf8(&self.password).unwrap().into()),
-        )
+impl MeshConfigExt for MeshConfig {
+    fn to_mode_config(&self, peer: Option<Bssid>) -> esp_radio::wifi::ModeConfig {
+        use esp_radio::wifi::{AccessPointConfig, AuthMethod, ClientConfig};
+
+        return match peer {
+            Some(bssid) => esp_radio::wifi::ModeConfig::ApSta(
+                ClientConfig::default()
+                    .with_channel(self.channel)
+                    .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
+                    .with_bssid(bssid)
+                    .with_auth_method(AuthMethod::Wpa3Personal)
+                    .with_password(str::from_utf8(&self.password).unwrap().into()),
+                AccessPointConfig::default()
+                    .with_channel(self.channel)
+                    .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
+                    .with_auth_method(AuthMethod::Wpa3Personal)
+                    .with_password(str::from_utf8(&self.password).unwrap().into()),
+            ),
+            None => esp_radio::wifi::ModeConfig::ApSta(
+                ClientConfig::default(),
+                AccessPointConfig::default()
+                    .with_channel(self.channel)
+                    .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
+                    .with_auth_method(AuthMethod::Wpa3Personal)
+                    .with_password(str::from_utf8(&self.password).unwrap().into()),
+            ),
+        };
+
+        // esp_radio::wifi::ModeConfig::ApSta(
+        //     ClientConfig::default(),
+        //     AccessPointConfig::default()
+        //         .with_channel(self.channel)
+        //         .with_ssid(str::from_utf8(&self.ssid).unwrap().into())
+        //         .with_auth_method(AuthMethod::Wpa3Personal)
+        //         .with_password(str::from_utf8(&self.password).unwrap().into()),
+        // )
     }
 
     fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_> {
@@ -63,16 +89,17 @@ impl MeshConfigExt for mesh::MeshConfig {
     }
 }
 
+use rusty_robot_drivers::radio::mesh::{ScanEntry, ScanResults};
 impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
-    fn start(mut self, config: mesh::MeshConfig) {
+    fn start(&mut self, config: &MeshConfig) {
         self.wifi_controller
-            .set_config(&config.to_mode_config())
+            .set_config(&config.to_mode_config(None))
             .unwrap();
 
         self.wifi_controller.start().unwrap();
     }
 
-    fn scan(mut self, config: mesh::MeshConfig) -> mesh::ScanResults {
+    fn scan(&mut self, config: &MeshConfig) -> ScanResults {
         // perform the scan
         let results = self
             .wifi_controller
@@ -80,7 +107,7 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
             .unwrap();
 
         // create the response
-        let mut ret = mesh::ScanResults::new();
+        let mut ret = ScanResults::new();
         for entry in results {
             ret.add(ScanEntry {
                 bssid: entry.bssid,
@@ -88,5 +115,18 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
             })
         }
         ret
+    }
+
+    fn connect(&mut self, config: &MeshConfig, bssid: rusty_robot_drivers::radio::mesh::Bssid) {
+        // configure STA
+        self.wifi_controller
+            .set_config(&config.to_mode_config(Some(bssid)))
+            .unwrap();
+
+        match self.wifi_controller.connect()
+        {
+            Ok(_) => return,
+            Err(_) => return
+        }
     }
 }

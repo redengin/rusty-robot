@@ -49,14 +49,13 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     loop {
         Timer::after(Duration::from_secs(1)).await;
     }
-
-    // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0-rc.1/examples/src/bin
 }
 
 
 /// prototype of a generic mesh controller
+/// FIXME
 #[embassy_executor::task]
-async fn mesh_controller_task(mesh_controller: Esp32MeshController<'static>)
+async fn mesh_controller_task(mut mesh_controller: Esp32MeshController<'static>)
 {
     // let mesh_controller = mesh as rusty_robot_drivers::radio::mesh::MeshNode;
 
@@ -68,7 +67,15 @@ async fn mesh_controller_task(mesh_controller: Esp32MeshController<'static>)
     );
 
     // start the radio
-    <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::start(mesh_controller, mesh_config);
+    <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::start(&mut mesh_controller, &mesh_config);
 
+    loop {
+        let scan_results = <Esp32MeshController as rusty_robot_drivers::radio::mesh::MeshNode>::scan(&mut mesh_controller, &mesh_config);
+
+        for entry in scan_results
+        {
+            
+        }
+    }
 
 }

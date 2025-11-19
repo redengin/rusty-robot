@@ -43,9 +43,13 @@ impl Mesh {
 
 pub trait MeshNode {
     /// initialize the radios and begin broadcasting SSID
-    fn start(self, config: MeshConfig);
+    fn start(&mut self, config: &MeshConfig);
 
-    fn scan(self, config: MeshConfig) -> ScanResults;
+    /// scan for APs
+    fn scan(&mut self, config: &MeshConfig) -> ScanResults;
+
+    /// connect to peer
+    fn connect(&mut self, config: &MeshConfig, peer: Bssid);
 }
 
 #[derive(Debug)]
