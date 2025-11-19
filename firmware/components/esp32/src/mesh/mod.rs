@@ -96,20 +96,22 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
 
     fn scan(&mut self, config: &MeshConfig) -> ScanResults {
         // perform the scan
-        let results = self
+        return match self
             .wifi_controller
             .scan_with_config(config.to_scan_config())
-            .unwrap();
-
-        // create the response
-        let mut ret = ScanResults::new();
-        for entry in results {
-            ret.add(ScanEntry {
-                bssid: entry.bssid,
-                rssi: entry.signal_strength,
-            })
-        }
-        ret
+        {
+            Ok(results) => {
+                let mut ret = ScanResults::new();
+                for entry in results {
+                    ret.add(ScanEntry {
+                        bssid: entry.bssid,
+                        rssi: entry.signal_strength,
+                    })
+                }
+                ret
+            }
+            Err(_) => ScanResults::new(),
+        };
     }
 
     fn connect(&mut self, config: &MeshConfig, bssid: rusty_robot_drivers::radio::mesh::Bssid) {
@@ -125,6 +127,9 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
     }
 
     fn is_connected(&self) -> bool {
-        self.wifi_controller.is_connected().unwrap()
+        return match self.wifi_controller.is_connected() {
+            Ok(ret) => ret,
+            Err(_) => false
+        }
     }
 }
