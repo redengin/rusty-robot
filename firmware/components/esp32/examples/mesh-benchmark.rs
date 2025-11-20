@@ -123,6 +123,8 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
                 // connect
                 wifi_controller.connect().unwrap();
 
+                info!("is connected [{:?}] {:?}", peer.bssid, wifi_controller.is_connected().unwrap());
+
                 // disconnect
                 wifi_controller.disconnect().unwrap();
             }
