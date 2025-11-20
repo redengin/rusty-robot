@@ -29,7 +29,7 @@ macro_rules! profile {
     }};
 }
 
-const CHANNEL: u8 = 11;
+const CHANNEL: u8 = 9;
 const SSID: &str = "mesh-benchmark";
 const PASSWORD: &str = "mesh-benchmark-password";
 
@@ -97,7 +97,8 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     // configure scanning for peers
     let scan_config = esp_radio::wifi::ScanConfig::default()
         .with_channel(CHANNEL)
-        .with_ssid(SSID.into());
+        .with_ssid(SSID.into())
+        .with_scan_type(esp_radio::wifi::ScanTypeConfig::Passive(core::time::Duration::from_millis(103)));
     let mut last_peer_time = esp_hal::time::Instant::now();
 
     loop {
@@ -106,14 +107,13 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
         if scan_result.len() > 0 {
             // memo the time between finding a peer
             let now = esp_hal::time::Instant::now();
-            info!(
+            trace!(
                 "{} ms since last peer connection",
                 (now - last_peer_time).as_millis()
             );
             last_peer_time = now;
 
             // connect to peers
-            info!("found {} peers", scan_result.len());
             for peer in scan_result {
                 // must reconfigure wifi controller in order to connect
                 wifi_controller
@@ -123,9 +123,17 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
                 // connect
                 wifi_controller.connect().unwrap();
 
-                info!("is connected [{:?}] {:?}", peer.bssid, wifi_controller.is_connected().unwrap());
+                // FIXME test connection
+                // let start = esp_hal::time::Instant::now();
+                // while (esp_hal::time::Instant::now() - start).as_millis() < 100
+                // {
+                //     if wifi_controller.is_connected().unwrap()
+                //     {
+                //         info!("connected [{:?}]", peer.bssid);
+                //     }
+                // }
 
-                // disconnect
+                // disconnect (else next scan will panic)
                 wifi_controller.disconnect().unwrap();
             }
         }

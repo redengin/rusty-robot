@@ -48,6 +48,12 @@ impl MeshConfigExt for MeshConfig {
     fn to_mode_config(&self, peer: Option<Bssid>) -> esp_radio::wifi::ModeConfig {
         use esp_radio::wifi::{AccessPointConfig, AuthMethod, ClientConfig};
 
+        let ap_config = AccessPointConfig::default()
+            .with_channel(self.channel)
+            .with_ssid(self.ssid.clone())
+            .with_auth_method(AuthMethod::Wpa3Personal)
+            .with_password(self.password.clone());
+
         return match peer {
             Some(bssid) => esp_radio::wifi::ModeConfig::ApSta(
                 ClientConfig::default()
@@ -56,27 +62,23 @@ impl MeshConfigExt for MeshConfig {
                     .with_bssid(bssid)
                     .with_auth_method(AuthMethod::Wpa3Personal)
                     .with_password(self.password.clone()),
-                AccessPointConfig::default()
-                    .with_channel(self.channel)
-                    .with_ssid(self.ssid.clone())
-                    .with_auth_method(AuthMethod::Wpa3Personal)
-                    .with_password(self.password.clone()),
+                ap_config,
             ),
-            None => esp_radio::wifi::ModeConfig::ApSta(
-                ClientConfig::default(),
-                AccessPointConfig::default()
-                    .with_channel(self.channel)
-                    .with_ssid(self.ssid.clone())
-                    .with_auth_method(AuthMethod::Wpa3Personal)
-                    .with_password(self.password.clone()),
-            ),
+            None => esp_radio::wifi::ModeConfig::ApSta(ClientConfig::default(), ap_config),
         };
     }
 
     fn to_scan_config(&self) -> esp_radio::wifi::ScanConfig<'_> {
+        const SCAN_DURATION_MILLIS: u64 = 103;  // common wifi beacon rate
+
+        use esp_radio::wifi::ScanTypeConfig;
+        const SCAN_TYPE: ScanTypeConfig =
+            ScanTypeConfig::Passive(core::time::Duration::from_millis(SCAN_DURATION_MILLIS));
+
         esp_radio::wifi::ScanConfig::default()
             .with_channel(self.channel)
             .with_ssid(&self.ssid)
+            .with_scan_type(SCAN_TYPE)
     }
 }
 
@@ -129,7 +131,7 @@ impl rusty_robot_drivers::radio::mesh::MeshNode for Esp32MeshController<'_> {
     fn is_connected(&self) -> bool {
         return match self.wifi_controller.is_connected() {
             Ok(ret) => ret,
-            Err(_) => false
-        }
+            Err(_) => false,
+        };
     }
 }

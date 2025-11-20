@@ -18,7 +18,6 @@ ESP_WIFI_CONFIG_PHY_ENABLE_USB = "false"
 rustflags = [
   "-C", "link-arg=-nostartfiles",
 ]
-
 target = "xtensa-esp32-none-elf"
 
 [unstable]

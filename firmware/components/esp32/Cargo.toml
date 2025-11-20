@@ -25,8 +25,8 @@ embassy-time = "*"
 
 # for more networking protocol support see https://crates.io/crates/edge-net
 esp-radio = { version = "*", features = [
+    # default feature "esp-alloc",
     "esp32",
-    "esp-alloc",
     "unstable",
     "wifi",
     # "esp-now",
@@ -42,20 +42,20 @@ rusty-robot-drivers = { path = "../../drivers" }
 [profile.dev]
 # Rust debug is too slow.
 # For debug builds always builds with some optimization
-opt-level = "s"
+opt-level = 2
 
 [profile.release]
-codegen-units = 1        # LLVM can perform better optimizations using a single thread
-debug = 2
-debug-assertions = false
-incremental = false
-lto = 'fat'
-opt-level = 's'
-overflow-checks = false
+opt-level = 2
+# codegen-units = 1        # LLVM can perform better optimizations using a single thread
+# debug = 2
+# debug-assertions = false
+# incremental = false
+# lto = 'fat'
+# overflow-checks = false
 
-# build esp-wifi with optimization level 2 or 3 (otherwise, it might not even be able to connect or advertise)
-[profile.dev.package.esp-wifi]
+# https://docs.espressif.com/projects/rust/esp-wifi/0.15.0/esp32/esp_wifi/index.html#optimization-level
+[profile.dev.package.esp-wifi-sys]
 opt-level = 3
-[profile.release.package.esp-wifi]
+[profile.release.package.esp-wifi-sys]
 opt-level = 3
 
