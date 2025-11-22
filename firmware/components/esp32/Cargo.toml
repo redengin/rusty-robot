@@ -33,7 +33,8 @@ esp-radio = { version = "*", features = [
     # "smoltcp",
 ] }
 # required by esp-radio
-esp-alloc = "*"
+# esp-alloc = "*"
+esp-alloc = { version = "*", features = ["internal-heap-stats"] }
 
 # rusty-robot shared libraries
 rusty-robot = { path = "../../common" }

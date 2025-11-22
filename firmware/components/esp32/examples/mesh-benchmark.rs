@@ -65,7 +65,8 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     esp_println::logger::init_logger(LevelFilter::Trace);
 
     // create a heap allocator (required by esp_radio)
-    const HEAP_SIZE: usize = 98767;
+    // const HEAP_SIZE: usize = 98767;
+    const HEAP_SIZE: usize = 48_000;
     esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: HEAP_SIZE);
 
     // initialize the SoC
@@ -98,10 +99,13 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     let scan_config = esp_radio::wifi::ScanConfig::default()
         .with_channel(CHANNEL)
         .with_ssid(SSID.into())
-        .with_scan_type(esp_radio::wifi::ScanTypeConfig::Passive(core::time::Duration::from_millis(103)));
+        .with_scan_type(esp_radio::wifi::ScanTypeConfig::Passive(
+            core::time::Duration::from_millis(103),
+        ));
     let mut last_peer_time = esp_hal::time::Instant::now();
 
     loop {
+        trace!("scanning {}", esp_alloc::HEAP.stats());
         let scan_result = wifi_controller.scan_with_config(scan_config).unwrap();
 
         if scan_result.len() > 0 {
@@ -114,13 +118,18 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
             last_peer_time = now;
 
             // connect to peers
-            for peer in scan_result {
+            for peer in &scan_result {
+
+                // display heap stats
+                trace!("connecting set_config() {}", esp_alloc::HEAP.stats());
+
                 // must reconfigure wifi controller in order to connect
                 wifi_controller
                     .set_config(&create_wifi_config(Some(peer.bssid)))
                     .unwrap();
 
                 // connect
+                trace!("connecting connect() {}", esp_alloc::HEAP.stats());
                 wifi_controller.connect().unwrap();
 
                 // FIXME test connection
@@ -134,6 +143,7 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
                 // }
 
                 // disconnect (else next scan will panic)
+                trace!("connecting disconnect() {}", esp_alloc::HEAP.stats());
                 wifi_controller.disconnect().unwrap();
             }
         }
