@@ -104,7 +104,7 @@ async fn hello_task(network_stack: embassy_net::Stack<'static>) -> ! {
     let mut socket = TcpSocket::new(network_stack, &mut rx_buffer, &mut tx_buffer);
     socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
 
-    // respond to socket responses
+    // respond to socket requests
     loop {
         use embassy_net::IpListenEndpoint;
         let r = socket
