@@ -6,7 +6,7 @@ const WIFI_CHANNEL: &str = env!("WIFI_CHANNEL");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 
 // provide panic handler
-use rusty_robot_esp32::{self as _};
+use rusty_robot_esp32::{self as _, create_heap};
 
 use log::*;
 use rusty_robot::mk_static;
@@ -21,11 +21,8 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_println::logger::init_logger_from_env();
     trace!("initializing...");
 
-    // create a heap allocator (required by esp_radio)
-    // const HEAP_SIZE: usize = 98767;
-    // esp_alloc::heap_allocator!(#[unsafe(link_section = ".dram2_uninit")] size: HEAP_SIZE);
-    esp_alloc::heap_allocator!(#[esp_hal::ram(reclaimed)] size: 64 * 1024);
-    esp_alloc::heap_allocator!(size: 36 * 1024);
+    // create a heap (alloc required by esp_radio)
+    create_heap!();
 
     // initialize the SoC
     use esp_hal::clock::CpuClock;
