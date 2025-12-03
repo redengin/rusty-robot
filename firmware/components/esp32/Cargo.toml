@@ -13,15 +13,17 @@ log = "*"
 embassy-executor = { version = "*", features = [] }
 embassy-time = "*"
 embassy-net = { version = "0.7.0", features = [
-    "dhcpv4",
-    "medium-ethernet",
     "tcp",
     "udp",
+    "dhcpv4",
+    # "medium-ethernet",
 ] }
 # ieee80211 = { version = "0.4.0", default-features = false }
 # ieee80211 = { version = "*", default-features = false }
 ieee80211 = "*"
 
+# TODO is this useful
+embedded-io-async = "*"
 
 # rusty-robot shared libraries
 rusty-robot = { path = "../../common" }
@@ -34,11 +36,13 @@ features = ["log-04"]
 
 [dependencies.esp-hal]
 git = "https://github.com/esp-rs/esp-hal"
-features = ["log-04", "unstable"]
+# features = ["log-04", "unstable"]
+features = ["unstable"]
 
 [dependencies.esp-rtos]
 git = "https://github.com/esp-rs/esp-hal"
-features = ["embassy", "log-04", "esp-radio"]
+# features = ["embassy", "log-04", "esp-radio"]
+features = ["embassy", "esp-radio"]
 
 [dependencies.esp-radio]
 # esp-radio = { version = "*", features = [
@@ -50,7 +54,8 @@ features = ["embassy", "log-04", "esp-radio"]
 #     # "smoltcp",
 # ] }
 git = "https://github.com/esp-rs/esp-hal"
-features = ["log-04", "wifi"]
+# features = ["log-04", "wifi"]
+features = ["wifi"]
 
 [dependencies.esp-alloc]
 # required by esp-radio

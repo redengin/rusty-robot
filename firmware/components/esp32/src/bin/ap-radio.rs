@@ -1,7 +1,9 @@
 #![no_std]
 #![no_main]
 
-use core::net::Ipv4Addr;
+// Environment Variables (config.toml)
+const WIFI_CHANNEL: &str = env!("WIFI_CHANNEL");
+const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 
 // provide panic handler
 use rusty_robot_esp32::{self as _};
@@ -9,7 +11,7 @@ use rusty_robot_esp32::{self as _};
 use log::*;
 use rusty_robot::mk_static;
 
-use embassy_time::{Timer, Duration};
+use embassy_time::{Duration, Timer};
 
 // Environment Variables
 
@@ -42,31 +44,43 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
         esp_radio::wifi::new(peripherals.WIFI, Default::default()).unwrap();
 
     // initialize network stack
-    use embassy_net::{Ipv4Cidr, StackResources, StaticConfigV4};
+    use embassy_net::Ipv4Cidr;
     let address = Ipv4Cidr::new("192.168.9.1".parse().unwrap(), 24);
     let rng = esp_hal::rng::Rng::new();
-    let (stack, runner) = embassy_net::new(
+    use embassy_net::{StackResources, StaticConfigV4};
+    let (network_stack, runner) = embassy_net::new(
         wifi_interfaces.access_point,
         embassy_net::Config::ipv4_static(StaticConfigV4 {
             address: address,
             gateway: None,
             dns_servers: Default::default(),
         }),
-        // config,
         mk_static!(StackResources<3>, StackResources::<3>::new()),
-        rng.random() as u64, // provide a random seed
-                             //  TODO security implications
+        rng.random() as u64, // provide a random seed (TODO security implications)
     );
-    stack.config_v4().unwrap();
+    network_stack.config_v4().unwrap();
 
-    // start the network
+    // start the network stack
     spawner.spawn(net_task(runner)).unwrap();
 
     // configure the AP
-    let ap_config = esp_radio::wifi::ModeConfig::default();
-    wifi_controller.set_config(&ap_config);
+    let ap_config = esp_radio::wifi::ap::AccessPointConfig::default()
+        .with_ssid("robot <MAC>".into())
+        .with_channel(WIFI_CHANNEL.parse().unwrap())
+        // .with_auth_method(esp_radio::wifi::AuthMethod::Wpa3Personal)
+        .with_auth_method(esp_radio::wifi::AuthMethod::Wpa)
+        .with_password(WIFI_PASSWORD.into());
+    wifi_controller
+        .set_config(&esp_radio::wifi::ModeConfig::AccessPoint(ap_config))
+        .unwrap();
 
-    loop {}
+    // start the AP
+    wifi_controller.start().unwrap();
+
+    // provide a hello-world web service
+    hello_task(network_stack).await;
+
+    // loop {}
 }
 
 #[embassy_executor::task]
@@ -74,3 +88,100 @@ async fn net_task(mut runner: embassy_net::Runner<'static, esp_radio::wifi::Wifi
     runner.run().await
 }
 
+async fn hello_task(network_stack: embassy_net::Stack<'static>) -> ! {
+    let mut rx_buffer = [0; 1536];
+    let mut tx_buffer = [0; 1536];
+
+    loop {
+        if network_stack.is_link_up() {
+            break;
+        }
+        Timer::after(Duration::from_millis(500)).await;
+    }
+    // println!(
+    //     "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:8080/"
+    // );
+    // println!("DHCP is enabled so there's no need to configure a static IP, just in case:");
+    while !network_stack.is_config_up() {
+        Timer::after(Duration::from_millis(100)).await
+    }
+    // network_stack
+    //     .config_v4()
+    //     .inspect(|c| println!("ipv4 config: {c:?}"));
+    info!("network stack is up");
+
+    use embassy_net::tcp::TcpSocket;
+    let mut socket = TcpSocket::new(network_stack, &mut rx_buffer, &mut tx_buffer);
+    socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
+    loop {
+        // println!("Wait for connection...");
+        use embassy_net::IpListenEndpoint;
+        let r = socket
+            .accept(IpListenEndpoint {
+                addr: None,
+                port: 80,
+            })
+            .await;
+        // println!("Connected...");
+
+        if let Err(_e) = r {
+            // println!("connect error: {:?}", e);
+            continue;
+        }
+
+        use embedded_io_async::Write;
+
+        let mut buffer = [0u8; 1024];
+        let mut pos = 0;
+        loop {
+            match socket.read(&mut buffer).await {
+                Ok(0) => {
+                    // println!("read EOF");
+                    break;
+                }
+                Ok(len) => {
+                    let to_print =
+                        unsafe { core::str::from_utf8_unchecked(&buffer[..(pos + len)]) };
+
+                    if to_print.contains("\r\n\r\n") {
+                        // print!("{}", to_print);
+                        // println!();
+                        break;
+                    }
+
+                    pos += len;
+                }
+                Err(_e) => {
+                    // println!("read error: {:?}", e);
+                    break;
+                }
+            };
+        }
+
+        let r = socket
+            .write_all(
+                b"HTTP/1.0 200 OK\r\n\r\n\
+            <html>\
+                <body>\
+                    <h1>Hello Rust! Hello esp-radio!</h1>\
+                </body>\
+            </html>\r\n\
+            ",
+            )
+            .await;
+        if let Err(_e) = r {
+            // println!("write error: {:?}", e);
+        }
+
+        let r = socket.flush().await;
+        if let Err(_e) = r {
+            // println!("flush error: {:?}", e);
+        }
+        Timer::after(Duration::from_millis(1000)).await;
+
+        socket.close();
+        Timer::after(Duration::from_millis(1000)).await;
+
+        socket.abort();
+    }
+}
