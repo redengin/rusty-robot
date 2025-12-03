@@ -87,60 +87,60 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     let mut last_peer_time = esp_hal::time::Instant::now();
 
     loop {
-        let scan_result = wifi_controller.scan_with_config(scan_config).unwrap();
+        // let scan_result = wifi_controller.scan_with_config(scan_config).unwrap();
 
-        if scan_result.len() > 0 {
-            // memo the time between finding a peer
-            let now = esp_hal::time::Instant::now();
-            trace!(
-                "{} ms since last peer connection",
-                (now - last_peer_time).as_millis()
-            );
-            last_peer_time = now;
+        // if scan_result.len() > 0 {
+        //     // memo the time between finding a peer
+        //     let now = esp_hal::time::Instant::now();
+        //     trace!(
+        //         "{} ms since last peer connection",
+        //         (now - last_peer_time).as_millis()
+        //     );
+        //     last_peer_time = now;
 
-            // connect to peers
-            for peer in scan_result {
-                // must reconfigure wifi controller in order to connect
-                wifi_controller
-                    .set_config(&create_wifi_config(Some(peer.bssid)))
-                    .unwrap();
+        //     // connect to peers
+        //     for peer in scan_result {
+        //         // must reconfigure wifi controller in order to connect
+        //         wifi_controller
+        //             .set_config(&create_wifi_config(Some(peer.bssid)))
+        //             .unwrap();
 
-                // connect
-                wifi_controller.connect().unwrap();
+        //         // connect
+        //         wifi_controller.connect().unwrap();
 
-                // FIXME test connection
-                // let start = esp_hal::time::Instant::now();
-                // while (esp_hal::time::Instant::now() - start).as_millis() < 100
-                // {
-                //     // if wifi_controller.is_connected().unwrap()
-                //     if esp_radio::wifi::sta_state() == esp_radio::wifi::WifiStaState::Connected
-                //     {
-                //         info!("connected [{:?}]", peer.bssid);
-                //     }
-                // }
+        //         // FIXME test connection
+        //         // let start = esp_hal::time::Instant::now();
+        //         // while (esp_hal::time::Instant::now() - start).as_millis() < 100
+        //         // {
+        //         //     // if wifi_controller.is_connected().unwrap()
+        //         //     if esp_radio::wifi::sta_state() == esp_radio::wifi::WifiStaState::Connected
+        //         //     {
+        //         //         info!("connected [{:?}]", peer.bssid);
+        //         //     }
+        //         // }
 
-                // send hello
-                match wifi_interfaces.sta.transmit() {
-                    Some(token) => {
-                        debug!("have tx token {:?}", token);
-                        // const message:[u8; _] = "hello world";
-                        // token.consume_token(len, f)
-                        // use ieee80211::scroll::Pwrite;
-                        // let mut frame_buffer = [0u8; 300];
-                        // let length = frame_buffer.pwrite(
-                        //     ieee80211::data_frame::DataFrame {
-                        //         header: ieee80211::data_frame::header {
+        //         // send hello
+        //         match wifi_interfaces.sta.transmit() {
+        //             Some(token) => {
+        //                 debug!("have tx token {:?}", token);
+        //                 // const message:[u8; _] = "hello world";
+        //                 // token.consume_token(len, f)
+        //                 // use ieee80211::scroll::Pwrite;
+        //                 // let mut frame_buffer = [0u8; 300];
+        //                 // let length = frame_buffer.pwrite(
+        //                 //     ieee80211::data_frame::DataFrame {
+        //                 //         header: ieee80211::data_frame::header {
 
-                        //         },
-                        //         payload: None
-                        //     }, 0);
-                    }
-                    None => debug!("failed to get tx token"),
-                }
+        //                 //         },
+        //                 //         payload: None
+        //                 //     }, 0);
+        //             }
+        //             None => debug!("failed to get tx token"),
+        //         }
 
-                // disconnect (else next scan will panic)
-                wifi_controller.disconnect().unwrap();
-            }
-        }
+        //         // disconnect (else next scan will panic)
+        //         wifi_controller.disconnect().unwrap();
+        //     }
+        // }
     }
 }

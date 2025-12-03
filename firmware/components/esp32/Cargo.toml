@@ -10,39 +10,108 @@ version = "0.1.0"
 
 [dependencies]
 log = "*"
-esp-println = { version = "*", features = ["esp32", "log-04"] }
-
-esp-bootloader-esp-idf = { version = "*", features = ["esp32"] }
-esp-hal = { version = "*", features = ["esp32", "unstable"] }
-esp-rtos = { version = "*", features = [
-    "embassy",
-    "esp-alloc",
-    "esp-radio",
-    "esp32",
-] }
 embassy-executor = { version = "*", features = [] }
 embassy-time = "*"
-
-# for more networking protocol support see https://crates.io/crates/edge-net
-esp-radio = { version = "*", features = [
-    # default feature "esp-alloc",
-    "esp32",
-    "unstable",
-    "wifi",
-    # "esp-now",
-    # "smoltcp",
+embassy-net = { version = "0.7.0", features = [
+    "dhcpv4",
+    "medium-ethernet",
+    "tcp",
+    "udp",
 ] }
-# required by esp-radio
-esp-alloc = "*"
-# esp-alloc = { version = "*", features = ["internal-heap-stats"] }
-
 # ieee80211 = { version = "0.4.0", default-features = false }
 # ieee80211 = { version = "*", default-features = false }
 ieee80211 = "*"
 
+
 # rusty-robot shared libraries
 rusty-robot = { path = "../../common" }
 rusty-robot-drivers = { path = "../../drivers" }
+
+
+[dependencies.esp-println]
+git = "https://github.com/esp-rs/esp-hal"
+features = ["log-04"]
+
+[dependencies.esp-hal]
+git = "https://github.com/esp-rs/esp-hal"
+features = ["log-04", "unstable"]
+
+[dependencies.esp-rtos]
+git = "https://github.com/esp-rs/esp-hal"
+features = ["embassy", "log-04", "esp-radio"]
+
+[dependencies.esp-radio]
+# esp-radio = { version = "*", features = [
+#     # default feature "esp-alloc",
+#     "esp32",
+#     "wifi",
+#     "unstable",
+#     # "esp-now",
+#     # "smoltcp",
+# ] }
+git = "https://github.com/esp-rs/esp-hal"
+features = ["log-04", "wifi"]
+
+[dependencies.esp-alloc]
+# required by esp-radio
+# esp-alloc = "*" # { version = "*", features = ["internal-heap-stats"] }
+git = "https://github.com/esp-rs/esp-hal"
+
+[dependencies.esp-bootloader-esp-idf]
+# required to reclaim boot memory
+# esp-bootloader-esp-idf = { version = "*", features = ["esp32"] }
+git = "https://github.com/esp-rs/esp-hal"
+
+
+[features]
+default = ["esp32"]
+
+#! ### Chip selection
+#! One of the following features must be enabled to select the target chip:
+esp32 = [
+    # "esp-backtrace/esp32",
+    "esp-println/esp32",
+    "esp-bootloader-esp-idf/esp32",
+    "esp-hal/esp32",
+    "esp-rtos/esp32",
+    "esp-radio/esp32",
+]
+# esp32c2 = [
+#     "esp-backtrace/esp32c2",
+#     "esp-bootloader-esp-idf/esp32c2",
+#     "esp-hal/esp32c2",
+#     "esp-rtos/esp32c2",
+#     "esp-radio/esp32c2",
+# ]
+# esp32c3 = [
+#     "esp-backtrace/esp32c3",
+#     "esp-bootloader-esp-idf/esp32c3",
+#     "esp-hal/esp32c3",
+#     "esp-rtos/esp32c3",
+#     "esp-radio/esp32c3",
+# ]
+# esp32c6 = [
+#     "esp-backtrace/esp32c6",
+#     "esp-bootloader-esp-idf/esp32c6",
+#     "esp-hal/esp32c6",
+#     "esp-rtos/esp32c6",
+#     "esp-radio/esp32c6",
+# ]
+# esp32s2 = [
+#     "esp-backtrace/esp32s2",
+#     "esp-bootloader-esp-idf/esp32s2",
+#     "esp-hal/esp32s2",
+#     "esp-rtos/esp32s2",
+#     "esp-radio/esp32s2",
+# ]
+# esp32s3 = [
+#     "esp-backtrace/esp32s3",
+#     "esp-bootloader-esp-idf/esp32s3",
+#     "esp-hal/esp32s3",
+#     "esp-rtos/esp32s3",
+#     "esp-radio/esp32s3",
+# ]
+
 
 [profile.dev]
 # Rust debug is too slow.
