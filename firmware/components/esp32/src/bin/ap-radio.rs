@@ -134,14 +134,11 @@ async fn hello_task(network_stack: embassy_net::Stack<'static>) -> ! {
             // println!("write error: {:?}", e);
         }
 
-        let r = socket.flush().await;
-        if let Err(_e) = r {
-            // println!("flush error: {:?}", e);
-        }
-        Timer::after(Duration::from_millis(1000)).await;
+        let _ = socket.flush().await;
+        // Timer::after(Duration::from_millis(1000)).await;
 
         socket.close();
-        Timer::after(Duration::from_millis(1000)).await;
+        // Timer::after(Duration::from_millis(1000)).await;
 
         socket.abort();
     }
