@@ -77,10 +77,15 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     // start the AP
     wifi_controller.start().unwrap();
 
+    // FIXME
     // provide a hello-world web service
-    hello_task(network_stack).await;
+    spawner.spawn(hello_task(network_stack)).unwrap();
 
-    // loop {}
+    loop {
+        // TODO perform health checks
+        // in the meantime sleep so the scheduler will run
+        Timer::after(Duration::from_secs(1000)).await;
+    }
 }
 
 #[embassy_executor::task]
@@ -88,33 +93,19 @@ async fn net_task(mut runner: embassy_net::Runner<'static, esp_radio::wifi::Wifi
     runner.run().await
 }
 
+#[embassy_executor::task]
 async fn hello_task(network_stack: embassy_net::Stack<'static>) -> ! {
+    // create socket buffers
     let mut rx_buffer = [0; 1536];
     let mut tx_buffer = [0; 1536];
 
-    loop {
-        if network_stack.is_link_up() {
-            break;
-        }
-        Timer::after(Duration::from_millis(500)).await;
-    }
-    // println!(
-    //     "Connect to the AP `esp-radio` and point your browser to http://{gw_ip_addr_str}:8080/"
-    // );
-    // println!("DHCP is enabled so there's no need to configure a static IP, just in case:");
-    while !network_stack.is_config_up() {
-        Timer::after(Duration::from_millis(100)).await
-    }
-    // network_stack
-    //     .config_v4()
-    //     .inspect(|c| println!("ipv4 config: {c:?}"));
-    info!("network stack is up");
-
+    // create a tcp socket
     use embassy_net::tcp::TcpSocket;
     let mut socket = TcpSocket::new(network_stack, &mut rx_buffer, &mut tx_buffer);
     socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
+
+    // respond to socket responses
     loop {
-        // println!("Wait for connection...");
         use embassy_net::IpListenEndpoint;
         let r = socket
             .accept(IpListenEndpoint {
@@ -122,42 +113,12 @@ async fn hello_task(network_stack: embassy_net::Stack<'static>) -> ! {
                 port: 80,
             })
             .await;
-        // println!("Connected...");
 
         if let Err(_e) = r {
-            // println!("connect error: {:?}", e);
             continue;
         }
 
         use embedded_io_async::Write;
-
-        let mut buffer = [0u8; 1024];
-        let mut pos = 0;
-        loop {
-            match socket.read(&mut buffer).await {
-                Ok(0) => {
-                    // println!("read EOF");
-                    break;
-                }
-                Ok(len) => {
-                    let to_print =
-                        unsafe { core::str::from_utf8_unchecked(&buffer[..(pos + len)]) };
-
-                    if to_print.contains("\r\n\r\n") {
-                        // print!("{}", to_print);
-                        // println!();
-                        break;
-                    }
-
-                    pos += len;
-                }
-                Err(_e) => {
-                    // println!("read error: {:?}", e);
-                    break;
-                }
-            };
-        }
-
         let r = socket
             .write_all(
                 b"HTTP/1.0 200 OK\r\n\r\n\
