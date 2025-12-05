@@ -113,7 +113,6 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
             // connect to peers
             for peer in &scan_result {
                 // must reconfigure wifi controller in order to connect
-                // FIXME implementation leaks memory
                 if wifi_controller
                     .set_config(&create_wifi_config(Some(peer.bssid)))
                     .is_err()
