@@ -66,8 +66,7 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
 
     // initialize the radio for WiFi
-    let wifi_config = esp_radio::wifi::Config::default()
-        .with_country_code(country_code_from_env());
+    let wifi_config = esp_radio::wifi::Config::default().with_country_code(country_code_from_env());
     let (mut wifi_controller, _wifi_interfaces) =
         esp_radio::wifi::new(peripherals.WIFI, wifi_config).unwrap();
 
@@ -89,14 +88,18 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
         .with_channel(CHANNEL)
         .with_scan_type(esp_radio::wifi::scan::ScanTypeConfig::Passive(
             // 103ms is the common beacon period
-            esp_hal::time::Duration::from_millis(103)
+            esp_hal::time::Duration::from_millis(103),
         ));
 
     let mut last_peer_time = esp_hal::time::Instant::now();
 
     loop {
         trace!("loop {}", esp_alloc::HEAP.stats());
-        let scan_result = wifi_controller.scan_with_config(scan_config).unwrap();
+        // NOTE: non-async scan will leak memory
+        let scan_result = wifi_controller
+            .scan_with_config_async(scan_config)
+            .await
+            .unwrap();
 
         if scan_result.len() > 0 {
             // memo the time between finding a peer
@@ -109,29 +112,30 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
 
             // connect to peers
             for peer in &scan_result {
-
                 // must reconfigure wifi controller in order to connect
-                wifi_controller
+                // FIXME implementation leaks memory
+                if wifi_controller
                     .set_config(&create_wifi_config(Some(peer.bssid)))
-                    .unwrap();
+                    .is_err()
+                {
+                    warn!("unable to configure STA bssid");
+                    continue
+                }
 
                 // connect
-                // wifi_controller.connect().unwrap();
-
-                // FIXME test connection
-                // let start = esp_hal::time::Instant::now();
-                // while (esp_hal::time::Instant::now() - start).as_millis() < 100
-                // {
-                //     if wifi_controller.is_connected().unwrap()
-                //     {
-                //         info!("connected [{:?}]", peer.bssid);
-                //     }
-                // }
-
-                // disconnect (else next scan will panic)
-                // wifi_controller.disconnect().unwrap();
+                // FIXME connect_async delays too long
+                // match wifi_controller.connect_async().await {
+                match wifi_controller.connect() {
+                    Ok(_) => {
+                        debug!("connection successful [{:?}]", peer.bssid);
+                        // TODO exchange some data
+                        wifi_controller.disconnect().unwrap();
+                    }
+                    Err(_) => {
+                        debug!("connection failed");
+                    }
+                }
             }
         }
     }
-
 }
