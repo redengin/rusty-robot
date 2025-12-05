@@ -51,5 +51,24 @@ pub fn country_code_from_env() -> [u8; 2]
     return [country_bytes[0], country_bytes[1]];
 }
 
+// provide profiling macros
+#[macro_export]
+macro_rules! profile {
+    ($label:tt, $expression:expr) => {{
+        let start = esp_hal::time::Instant::now();
+        let r = $expression;
+        let end = esp_hal::time::Instant::now();
+        trace!("{} took {} ms", $label, (end - start).as_millis());
+        r
+    }};
+    ($label:tt, $block:block) => {{
+        let start = esp_hal::time::Instant::now();
+        let r = $block;
+        let end = esp_hal::time::Instant::now();
+        trace!("{} took {} ms", $label, (end - start).as_millis());
+        r
+    }};
+}
+
 // FIXME
 // pub mod mesh;
