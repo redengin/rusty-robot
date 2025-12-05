@@ -12,13 +12,13 @@ use rusty_robot_esp32::{self as _, *};
 use log::*;
 
 // provide scheduling primitives
-use embassy_time::{Duration, Timer};
+// use embassy_time::{Duration, Timer};
 
 const CHANNEL: u8 = 9;
 const SSID: &str = "mesh-benchmark";
 const PASSWORD: &str = "mesh-benchmark-password";
 
-fn create_wifi_config(peer_bssid: Option<[u8; 6]>) -> esp_radio::wifi::ModeConfig {
+fn create_wifi_modeconfig(peer_bssid: Option<[u8; 6]>) -> esp_radio::wifi::ModeConfig {
     return match peer_bssid {
         Some(bssid) => esp_radio::wifi::ModeConfig::AccessPointStation(
             esp_radio::wifi::sta::StationConfig::default()
@@ -72,7 +72,7 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
 
     // configure radio protocols (must set_config() before set_protocol())
     wifi_controller
-        .set_config(&create_wifi_config(None))
+        .set_config(&create_wifi_modeconfig(None))
         .unwrap();
     wifi_controller
         .set_protocol(esp_radio::wifi::Protocol::P802D11LR.into())
@@ -114,7 +114,7 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
             for peer in &scan_result {
                 // must reconfigure wifi controller in order to connect
                 if wifi_controller
-                    .set_config(&create_wifi_config(Some(peer.bssid)))
+                    .set_config(&create_wifi_modeconfig(Some(peer.bssid)))
                     .is_err()
                 {
                     warn!("unable to configure STA bssid");
@@ -127,7 +127,6 @@ async fn main(_spawner: embassy_executor::Spawner) -> ! {
                 match wifi_controller.connect() {
                     Ok(_) => {
                         debug!("connection successful [{:?}]", peer.bssid);
-                        // TODO exchange some data
                         wifi_controller.disconnect().unwrap();
                     }
                     Err(_) => {
