@@ -45,6 +45,7 @@ macro_rules! create_heap {
     // }
 }
 
+/// convert config.toml env string to country code (two chars)
 pub fn country_code_from_env() -> [u8; 2]
 {
     let country_bytes = env!("ESP_WIFI_CONFIG_COUNTRY_CODE").as_bytes();
