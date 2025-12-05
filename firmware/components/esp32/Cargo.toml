@@ -23,7 +23,8 @@ embassy-net = { version = "0.7.0", features = [
 ieee80211 = "*"
 
 # TODO is this useful
-embedded-io-async = "*"
+# embedded-io-async = "*"
+embedded-io-async = "0.6.1"
 
 # rusty-robot shared libraries
 rusty-robot = { path = "../../common" }
@@ -55,7 +56,7 @@ features = ["embassy", "esp-radio"]
 # ] }
 git = "https://github.com/esp-rs/esp-hal"
 # features = ["log-04", "wifi"]
-features = ["wifi"]
+features = ["wifi", "unstable"]
 
 [dependencies.esp-alloc]
 # required by esp-radio

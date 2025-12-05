@@ -45,5 +45,11 @@ macro_rules! create_heap {
     // }
 }
 
+pub fn country_code_from_env() -> [u8; 2]
+{
+    let country_bytes = env!("ESP_WIFI_CONFIG_COUNTRY_CODE").as_bytes();
+    return [country_bytes[0], country_bytes[1]];
+}
+
 // FIXME
 // pub mod mesh;

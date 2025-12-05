@@ -6,7 +6,7 @@ const WIFI_CHANNEL: &str = env!("WIFI_CHANNEL");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 
 // provide panic handler
-use rusty_robot_esp32::{self as _, create_heap};
+use rusty_robot_esp32::{self as _, *};
 
 use log::*;
 use rusty_robot::mk_static;
@@ -37,8 +37,10 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
 
     // initialize the radio for WiFi
+    let wifi_config = esp_radio::wifi::Config::default()
+        .with_country_code(country_code_from_env());
     let (mut wifi_controller, wifi_interfaces) =
-        esp_radio::wifi::new(peripherals.WIFI, Default::default()).unwrap();
+        esp_radio::wifi::new(peripherals.WIFI, wifi_config).unwrap();
 
     // initialize network stack
     use embassy_net::Ipv4Cidr;
