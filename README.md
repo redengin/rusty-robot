@@ -1,7 +1,7 @@
 Enhance lives across the world
 ================================================================================
-You can create a robot today inexpensively. This repository is here to provide
-the knowledge and best practices to expedite your creation.
+You can create a robot today inexpensively. Here you can find the
+best practices and software support to expedite your creation.
 
 Creating your own robot
 --------------------------------------------------------------------------------
@@ -17,17 +17,17 @@ best practices and be provided tools to easily leverage them.
 
 Outline of the repository
 --------------------------------------------------------------------------------
-* [docs](docs/) - documentation for users
+* [docs](docs/) - documentation for robot creators
 * [simulator](simulator/) - allows you to test your robot control in simulated
         environments
 * [firmware](firmware/) - software ([RUST](https://www.rust-lang.org/)) to support your robot
-    * [common](firmware/common/) - shared data types
+    * [common](firmware/common/) - reusable data types
     * [drivers](firmware/drivers/) - hardware drivers and interface traits
     * [systems](firmware/systems/) - system traits
         * [flight_controllers](firmware/systems/flight_controllers) - flight controllers
     * [robots](firmware/robots/) - example implementations
         * gazebo simulation support
-    * [components](firmware/components) - embedded firmware for generic devices
+    * [components](firmware/components) - use inexpensive SoC to create robot system components
 
 
 
