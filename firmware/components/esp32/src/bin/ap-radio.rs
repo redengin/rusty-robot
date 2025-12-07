@@ -91,11 +91,11 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
 
 extern crate alloc;
 fn mac_to_ssid(mac: [u8; 6]) -> alloc::string::String {
-    alloc::format!( "robot {:x?}", mac)
-    // alloc::format!(
-    //     "robot {:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-    //     mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
-    // )
+    // alloc::format!( "robot {:x?}", mac)
+    alloc::format!(
+        "robot {:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+    )
 }
 
 #[embassy_executor::task]
