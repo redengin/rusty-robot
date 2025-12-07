@@ -106,8 +106,9 @@ async fn net_task(mut runner: embassy_net::Runner<'static, esp_radio::wifi::Wifi
 #[embassy_executor::task]
 async fn hello_task(network_stack: embassy_net::Stack<'static>) -> ! {
     // create socket buffers
-    let mut rx_buffer = [0; 1536];
-    let mut tx_buffer = [0; 1536];
+    const MTU: usize = 1536;
+    let mut rx_buffer = [0; MTU];
+    let mut tx_buffer = [0; MTU];
 
     // create a tcp socket
     use embassy_net::tcp::TcpSocket;
