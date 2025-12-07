@@ -4,10 +4,6 @@ name = "rusty-robot-esp32"
 rust-version = "1.88"
 version = "0.1.0"
 
-# [[bin]]
-# name = "esp32"
-# path = "./src/bin/main.rs"
-
 [dependencies]
 log = "*"
 embassy-executor = { version = "*", features = [] }
@@ -34,6 +30,9 @@ rusty-robot-drivers = { path = "../../drivers" }
 [dependencies.esp-println]
 git = "https://github.com/esp-rs/esp-hal"
 features = ["log-04"]
+[dependencies.esp-backtrace]
+git = "https://github.com/esp-rs/esp-hal"
+features = ["println", "colors"]
 
 [dependencies.esp-hal]
 git = "https://github.com/esp-rs/esp-hal"
@@ -75,49 +74,53 @@ default = ["esp32"]
 #! ### Chip selection
 #! One of the following features must be enabled to select the target chip:
 esp32 = [
-    # "esp-backtrace/esp32",
+    "esp-backtrace/esp32",
     "esp-println/esp32",
     "esp-bootloader-esp-idf/esp32",
     "esp-hal/esp32",
     "esp-rtos/esp32",
     "esp-radio/esp32",
 ]
-# esp32c2 = [
-#     "esp-backtrace/esp32c2",
-#     "esp-bootloader-esp-idf/esp32c2",
-#     "esp-hal/esp32c2",
-#     "esp-rtos/esp32c2",
-#     "esp-radio/esp32c2",
-# ]
-# esp32c3 = [
-#     "esp-backtrace/esp32c3",
-#     "esp-bootloader-esp-idf/esp32c3",
-#     "esp-hal/esp32c3",
-#     "esp-rtos/esp32c3",
-#     "esp-radio/esp32c3",
-# ]
-# esp32c6 = [
-#     "esp-backtrace/esp32c6",
-#     "esp-bootloader-esp-idf/esp32c6",
-#     "esp-hal/esp32c6",
-#     "esp-rtos/esp32c6",
-#     "esp-radio/esp32c6",
-# ]
-# esp32s2 = [
-#     "esp-backtrace/esp32s2",
-#     "esp-bootloader-esp-idf/esp32s2",
-#     "esp-hal/esp32s2",
-#     "esp-rtos/esp32s2",
-#     "esp-radio/esp32s2",
-# ]
-# esp32s3 = [
-#     "esp-backtrace/esp32s3",
-#     "esp-bootloader-esp-idf/esp32s3",
-#     "esp-hal/esp32s3",
-#     "esp-rtos/esp32s3",
-#     "esp-radio/esp32s3",
-# ]
-
+esp32c2 = [
+    "esp-backtrace/esp32c2",
+    "esp-println/esp32c2",
+    "esp-bootloader-esp-idf/esp32c2",
+    "esp-hal/esp32c2",
+    "esp-rtos/esp32c2",
+    "esp-radio/esp32c2",
+]
+esp32c3 = [
+    "esp-backtrace/esp32c3",
+    "esp-println/esp32c3",
+    "esp-bootloader-esp-idf/esp32c3",
+    "esp-hal/esp32c3",
+    "esp-rtos/esp32c3",
+    "esp-radio/esp32c3",
+]
+esp32c6 = [
+    "esp-backtrace/esp32c6",
+    "esp-println/esp32c6",
+    "esp-bootloader-esp-idf/esp32c6",
+    "esp-hal/esp32c6",
+    "esp-rtos/esp32c6",
+    "esp-radio/esp32c6",
+]
+esp32s2 = [
+    "esp-backtrace/esp32s2",
+    "esp-println/esp32s2",
+    "esp-bootloader-esp-idf/esp32s2",
+    "esp-hal/esp32s2",
+    "esp-rtos/esp32s2",
+    "esp-radio/esp32s2",
+]
+esp32s3 = [
+    "esp-backtrace/esp32s3",
+    "esp-println/esp32s3",
+    "esp-bootloader-esp-idf/esp32s3",
+    "esp-hal/esp32s3",
+    "esp-rtos/esp32s3",
+    "esp-radio/esp32s3",
+]
 
 [profile.dev]
 # Rust debug is too slow.
