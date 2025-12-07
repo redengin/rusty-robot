@@ -37,8 +37,7 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
 
     // initialize the radio for WiFi
-    let wifi_config = esp_radio::wifi::Config::default()
-        .with_country_code(country_code_from_env());
+    let wifi_config = esp_radio::wifi::Config::default().with_country_code(country_code_from_env());
     let (mut wifi_controller, wifi_interfaces) =
         esp_radio::wifi::new(peripherals.WIFI, wifi_config).unwrap();
 
@@ -47,6 +46,7 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     let address = Ipv4Cidr::new("192.168.9.1".parse().unwrap(), 24);
     let rng = esp_hal::rng::Rng::new();
     use embassy_net::{StackResources, StaticConfigV4};
+    let mac = wifi_interfaces.access_point.mac_address();
     let (network_stack, runner) = embassy_net::new(
         wifi_interfaces.access_point,
         embassy_net::Config::ipv4_static(StaticConfigV4 {
@@ -63,8 +63,10 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
     spawner.spawn(net_task(runner)).unwrap();
 
     // configure the AP
+    let ssid = mac_to_ssid(mac);
+    info!("SSID: '{}'", ssid);
     let ap_config = esp_radio::wifi::ap::AccessPointConfig::default()
-        .with_ssid("robot <MAC>".into())
+        .with_ssid(ssid)
         .with_channel(WIFI_CHANNEL.parse().unwrap())
         // .with_auth_method(esp_radio::wifi::AuthMethod::Wpa3Personal)
         .with_auth_method(esp_radio::wifi::AuthMethod::Wpa)
@@ -85,6 +87,15 @@ async fn main(spawner: embassy_executor::Spawner) -> ! {
         // in the meantime sleep so the scheduler will run
         Timer::after(Duration::from_secs(1000)).await;
     }
+}
+
+extern crate alloc;
+fn mac_to_ssid(mac: [u8; 6]) -> alloc::string::String {
+    alloc::format!( "robot {:x?}", mac)
+    // alloc::format!(
+    //     "robot {:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+    //     mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+    // )
 }
 
 #[embassy_executor::task]
