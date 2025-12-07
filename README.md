@@ -22,8 +22,8 @@ Outline of the repository
         environments
 * [firmware](firmware/) - software ([RUST](https://www.rust-lang.org/)) to support your robot
     * [common](firmware/common/) - reusable data types
-    * [drivers](firmware/drivers/) - hardware drivers and interface traits
-    * [systems](firmware/systems/) - system traits
+    * [drivers](firmware/drivers/) - protocol and hardware support
+    * [systems](firmware/systems/) - systems support
         * [flight_controllers](firmware/systems/flight_controllers) - flight controllers
     * [robots](firmware/robots/) - example implementations
         * gazebo simulation support
