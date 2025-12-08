@@ -22,10 +22,11 @@ exclude = [
 ]
 
 [workspace.dependencies]
+# logging support
 log = "*"
 env_logger = "*"
 
-# embassy support
+# (threads and scheduling)
 embassy-executor = { version = "*", features = ["log"] }
 embassy-time = { version = "*", features = ["log"] }
 embassy-sync = "*"
