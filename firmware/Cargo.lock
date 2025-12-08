@@ -679,6 +679,7 @@ dependencies = [
 name = "rusty-robot-systems"
 version = "0.1.0"
 dependencies = [
+ "embassy-time",
  "log",
  "rusty-robot-drivers",
 ]

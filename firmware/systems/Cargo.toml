@@ -8,6 +8,7 @@ edition = "2024"
 [dependencies]
 # common dependencies
 log = { workspace = true }
+embassy-time = { workspace = true }
 rusty-robot-drivers = { workspace = true }
 
 # provide attitude estimation via kalman filter
