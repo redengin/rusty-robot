@@ -30,11 +30,14 @@ where
     }
 
     pub fn step(&mut self) {
-        let _duration = self.timebound.step();
+        // determine the elapsed time
+        let _elapsed = self.timebound.step();
 
         let _imu_data =
             <Robot as rusty_robot_drivers::imu_traits::ImuReader>::get_data(&self.drone);
+        // TODO update estimated position via kalman filter
 
+        // FIXME only use gps data if robot provides it
         let _gps_data =
             <Robot as rusty_robot_drivers::gps_traits::Gps>::get_data(&self.drone).unwrap();
 
