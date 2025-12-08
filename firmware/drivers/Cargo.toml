@@ -7,8 +7,8 @@ edition = "2024"
 [dependencies]
 log = { workspace = true }
 
-rusty-robot = { workspace = true }
+rusty-robot-common = { workspace = true }
 
-embedded-hal-async = { workspace = true }
+embedded-hal-async = "*"
 # embedded-hal-bus = { version = "*", features = ["async"] }
 nmea = { version = "*", default-features = false } # GPS sentence parsing support

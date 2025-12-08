@@ -3,5 +3,6 @@
 pub mod csrf;
 
 
-/// mesh over wifi
-pub mod mesh;
+// FIXME implement
+// /// mesh over wifi
+// pub mod mesh;

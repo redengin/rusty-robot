@@ -7,7 +7,7 @@ edition = "2024"
 [dependencies]
 log = { workspace = true }
 
-rusty-robot = { workspace = true }
+# rusty-robot-common = { workspace = true }
 rusty-robot-drivers = { workspace = true }
 rusty-robot-systems = { workspace = true }
 

@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use rusty_robot::{Quaternion, Vector3};
+use rusty_robot_common::{Quaternion, Vector3};
 
 // --- Standard IMU Data ---
 #[derive(Debug, Clone, Copy, Default)]

@@ -1,6 +1,6 @@
 use gz::{self as gazebosim};
 
-use rusty_robot::Vector3;
+use rusty_robot_common::Vector3;
 use rusty_robot_drivers::imu_traits::{ImuData, ImuReader};
 use rusty_robot_drivers::{gps_traits, nmea};
 

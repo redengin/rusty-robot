@@ -8,7 +8,7 @@ pub use arrayvec;
 #[macro_export]
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
-        static STATIC_CELL: rusty_robot::static_cell::StaticCell<$t> = rusty_robot::static_cell::StaticCell::new();
+        static STATIC_CELL: rusty_robot_common::static_cell::StaticCell<$t> = rusty_robot_common::static_cell::StaticCell::new();
         #[deny(unused_attributes)]
         let x = STATIC_CELL.uninit().write(($val));
         x

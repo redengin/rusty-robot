@@ -23,7 +23,7 @@ ieee80211 = "*"
 embedded-io-async = "0.6.1"
 
 # rusty-robot shared libraries
-rusty-robot = { path = "../../common" }
+rusty-robot-common = { path = "../../common" }
 rusty-robot-drivers = { path = "../../drivers" }
 
 

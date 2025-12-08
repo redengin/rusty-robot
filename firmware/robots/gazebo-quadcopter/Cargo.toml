@@ -11,16 +11,15 @@ path = "src/bin/autonomous.rs"
 
 
 [dependencies]
-# workspace shared dependencies
 log = { workspace = true }
 env_logger = { workspace = true }
+
 embassy-executor = { workspace = true, features = ["arch-std", "executor-thread"] }
 embassy-time = { workspace = true, features = ["std"] }
 embassy-sync = { workspace = true, features = ["std"] }
 critical-section = { workspace = true, features = ["std"] }
-static_cell = { workspace = true }
 
-rusty-robot = { workspace = true }
+rusty-robot-common = { workspace = true }
 rusty-robot-drivers = { workspace = true }
 rusty-robot-systems = { workspace = true }
 rusty-robot-flight-controllers = { workspace = true }

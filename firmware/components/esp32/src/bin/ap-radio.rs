@@ -9,7 +9,7 @@ const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 use rusty_robot_esp32::{self as _, *};
 
 use log::*;
-use rusty_robot::mk_static;
+use rusty_robot_common::mk_static;
 
 use embassy_time::{Duration, Timer};
 

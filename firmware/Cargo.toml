@@ -24,8 +24,6 @@ exclude = [
 [workspace.dependencies]
 log = "*"
 env_logger = "*"
-static_cell = "*"
-embedded-hal-async = "*"
 
 # embassy support
 embassy-executor = { version = "*", features = ["log"] }
@@ -36,7 +34,8 @@ critical-section = "*"
 # gazebo simulation support
 gz = { version = "*", features = ["harmonic"] }
 
-rusty-robot = { path = "common" }
+# locally implemented
+rusty-robot-common = { path = "common" }
 rusty-robot-drivers = { path = "drivers" }
 rusty-robot-systems = { path = "systems" }
 rusty-robot-flight-controllers = { path = "systems/flight-controllers" }
