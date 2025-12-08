@@ -22,7 +22,6 @@ critical-section = { workspace = true, features = ["std"] }
 rusty-robot-common = { workspace = true }
 rusty-robot-drivers = { workspace = true }
 rusty-robot-systems = { workspace = true }
-rusty-robot-flight-controllers = { workspace = true }
 
 gz = { workspace = true }
 

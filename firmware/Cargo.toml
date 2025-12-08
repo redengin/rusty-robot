@@ -9,14 +9,13 @@ members = [
 
     # robot systems (traits and implementations)
     "systems",
-    "systems/flight-controllers",
 
     # example robot simulations
     "robots/gazebo-quadcopter",
 ]
 
 exclude = [
-    # hardware specific targets can't be part of the workspace
+    # hardware specific targets aren't easily supported as part of a rust workspace
     "robots/f405-quadcopter",
     "components/esp32",
 ]
@@ -39,4 +38,3 @@ gz = { version = "*", features = ["harmonic"] }
 rusty-robot-common = { path = "common" }
 rusty-robot-drivers = { path = "drivers" }
 rusty-robot-systems = { path = "systems" }
-rusty-robot-flight-controllers = { path = "systems/flight-controllers" }

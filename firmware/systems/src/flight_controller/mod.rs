@@ -1,18 +1,15 @@
-#![no_std]
 
-// use rusty_robot::{Quaternion, Vector3};
 
-// pub struct Trajectory {
-//     pub attitude: Quaternion,
-//     /// velocity in meters per second
-//     pub rate: f32,
-// }
+pub trait QuadCopterMotors {
+    /// set the velocity percent (0-255%) for all motors
+    fn set_data(&self, velocities_pct: [u8; 4]);
+}
 
 pub struct FlightController<'a, Drone>
 where
     Drone: rusty_robot_drivers::imu_traits::ImuReader
         + rusty_robot_drivers::gps_traits::Gps
-        + rusty_robot_systems::QuadCopterMotors,
+        + QuadCopterMotors,
 {
     drone: &'a Drone,
     mode: Mode,
@@ -22,7 +19,7 @@ impl<Drone> FlightController<'static, Drone>
 where
     Drone: rusty_robot_drivers::imu_traits::ImuReader
         + rusty_robot_drivers::gps_traits::Gps
-        + rusty_robot_systems::QuadCopterMotors,
+        + QuadCopterMotors,
 {
     pub fn new(drone: &'static Drone) -> Self {
         FlightController {
@@ -45,7 +42,7 @@ where
                 }
                 else {
                     let velocities_pct: [u8; 4] = [51, 51, 51, 51];
-                    <Drone as rusty_robot_systems::QuadCopterMotors>::set_data(self.drone, velocities_pct);
+                    <Drone as QuadCopterMotors>::set_data(self.drone, velocities_pct);
                 }
             }
             Mode::Hold => {

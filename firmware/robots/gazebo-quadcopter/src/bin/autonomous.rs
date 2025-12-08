@@ -5,7 +5,7 @@ use std::env;
 
 use rusty_robot_common::mk_static;
 use rusty_robot_gazebo_quadcopter::GazeboDrone;
-use rusty_robot_flight_controllers::FlightController;
+use rusty_robot_systems::flight_controller::FlightController;
 
 use embassy_executor::Spawner;
 #[embassy_executor::main]

@@ -137,7 +137,7 @@ impl gps_traits::Gps for GazeboDrone {
     }
 }
 
-impl rusty_robot_systems::QuadCopterMotors for GazeboDrone {
+impl rusty_robot_systems::flight_controller::QuadCopterMotors for GazeboDrone {
     fn set_data(&self, velocities_pct: [u8; 4]) {
         self.motors_signal.signal(velocities_pct);
     }
