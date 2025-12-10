@@ -9,18 +9,19 @@ pub fn now() -> Instant {
     embassy_time::Instant::now()
 }
 
-pub struct TimeBound {
+/// Calculate duration between each step()
+pub(crate) struct TimeBound {
     last_instant: Instant,
 }
 impl TimeBound {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             last_instant: now()
         }
     }
 
     /// upon each call, report the duration from the last call
-    pub fn step(&mut self) -> Duration {
+    pub(crate) fn step(&mut self) -> Duration {
         let now = now();
         let ret = now - self.last_instant;
         self.last_instant = now;

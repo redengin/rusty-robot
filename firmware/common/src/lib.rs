@@ -16,43 +16,43 @@ macro_rules! mk_static {
 }
 
 // #[derive(Debug, Clone, Copy, Default)]
-#[derive(Clone, Copy, Default)]
-pub struct Vector3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-impl core::fmt::Debug for Vector3 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("")
-            .field("x", &format_args!("{:.3}", &self.x))
-            .field("y", &format_args!("{:.3}", &self.y))
-            .field("z", &format_args!("{:.3}", &self.z))
-            .finish()
-    }
-}
-impl Vector3 {
-    // FIXME find a no_std trig library (libm doesn't leverage hardware)
-    // pub fn euler_to_quaternion(&self) -> Quaternion {
-    //     // Convert Euler angles (in radians) to quaternion
-    //     // Using the ZYX rotation order (yaw, pitch, roll)
-    //     let (roll, pitch, yaw) = (self.x, self.y, self.z);
+// #[derive(Clone, Copy, Default)]
+// pub struct Vector3 {
+//     pub x: f32,
+//     pub y: f32,
+//     pub z: f32,
+// }
+// impl core::fmt::Debug for Vector3 {
+//     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+//         f.debug_struct("")
+//             .field("x", &format_args!("{:.3}", &self.x))
+//             .field("y", &format_args!("{:.3}", &self.y))
+//             .field("z", &format_args!("{:.3}", &self.z))
+//             .finish()
+//     }
+// }
+// impl Vector3 {
+//     // FIXME find a no_std trig library (libm doesn't leverage hardware)
+//     // pub fn euler_to_quaternion(&self) -> Quaternion {
+//     //     // Convert Euler angles (in radians) to quaternion
+//     //     // Using the ZYX rotation order (yaw, pitch, roll)
+//     //     let (roll, pitch, yaw) = (self.x, self.y, self.z);
 
-    //     let cr = (roll * 0.5).cos();
-    //     let sr = (roll * 0.5).sin();
-    //     let cp = (pitch * 0.5).cos();
-    //     let sp = (pitch * 0.5).sin();
-    //     let cy = (yaw * 0.5).cos();
-    //     let sy = (yaw * 0.5).sin();
+//     //     let cr = (roll * 0.5).cos();
+//     //     let sr = (roll * 0.5).sin();
+//     //     let cp = (pitch * 0.5).cos();
+//     //     let sp = (pitch * 0.5).sin();
+//     //     let cy = (yaw * 0.5).cos();
+//     //     let sy = (yaw * 0.5).sin();
 
-    //     let w = cr * cp * cy + sr * sp * sy;
-    //     let x = sr * cp * cy - cr * sp * sy;
-    //     let y = cr * sp * cy + sr * cp * sy;
-    //     let z = cr * cp * sy - sr * sp * cy;
+//     //     let w = cr * cp * cy + sr * sp * sy;
+//     //     let x = sr * cp * cy - cr * sp * sy;
+//     //     let y = cr * sp * cy + sr * cp * sy;
+//     //     let z = cr * cp * sy - sr * sp * cy;
 
-    //     Quaternion { w, x, y, z }
-    // }
-}
+//     //     Quaternion { w, x, y, z }
+//     // }
+// }
 
 #[derive(Clone, Copy, Default)]
 pub struct Quaternion {

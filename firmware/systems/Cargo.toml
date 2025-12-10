@@ -11,6 +11,11 @@ log = { workspace = true }
 embassy-time = { workspace = true }
 rusty-robot-drivers = { workspace = true }
 
+# math
+# robust-pid = "*"
+# robotics = "*"
+ahrs = { version = "*", default-features = false }
+
 # provide attitude estimation via kalman filter
 # dcmimu = { version = "*", optional = true }
 

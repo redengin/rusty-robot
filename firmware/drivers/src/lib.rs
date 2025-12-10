@@ -3,9 +3,6 @@
 // re-export shared dependencies
 pub use nmea;   // GPS sentence parsing support
 
-// provide IMU traits
-pub mod imu_traits;
-
 // provide basic GPS API
 pub mod gps_traits {
     pub trait Gps {
@@ -14,7 +11,7 @@ pub mod gps_traits {
     }
 }
 
-// provide IMU drivers
+// provide IMU drivers and traits
 pub mod imu;
 
 

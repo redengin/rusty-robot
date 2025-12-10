@@ -5,6 +5,7 @@ license = "Apache-2.0"
 edition = "2024"
 
 [dependencies]
-# log = { workspace = true }
 static_cell = "*"
 arrayvec = { version = "*", default-features = false }
+
+# math

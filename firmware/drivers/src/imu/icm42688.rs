@@ -3,7 +3,7 @@
 
 use log::*;
 
-use rusty_robot_common::Vector3;
+use crate::imu::Vector3;
 
 const FLAG_READ_REG: u8 = 0x80;
 pub const REG_WHO_AM_I: u8 = 0x75;
@@ -162,7 +162,7 @@ impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> 
 
     pub async fn read_imu(
         &mut self,
-    ) -> Result<crate::imu_traits::ImuData, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error>
+    ) -> Result<crate::imu::imu_traits::ImuData, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error>
     {
         // burst read all the data
         let mut buf: [u8; 13] = [0xff; 13];
@@ -176,7 +176,7 @@ impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> 
 
         debug!("read_imu [{:?}]", buf);
 
-        Ok(crate::imu_traits::ImuData {
+        Ok(crate::imu::imu_traits::ImuData {
             accelerometer: Self::rawaccel_to_mps2(&self, &buf[1..7]),
             gyroscope: Self::rawgyro_to_dps(&self, &buf[7..13]),
             ..Default::default()

@@ -1,6 +1,5 @@
-use core::default;
+use crate::TimeBound;
 
-use crate::{Instant, TimeBound};
 
 /// Quad Copter Motors
 pub trait Motors {
@@ -11,7 +10,7 @@ pub trait Motors {
 pub struct FlightController<'a, Robot>
 where
     // all flight controllers need an imu
-    Robot: rusty_robot_drivers::imu_traits::ImuReader,
+    Robot: rusty_robot_drivers::imu::imu_traits::ImuReader,
 {
     timebound: TimeBound,
     drone: &'a Robot,
@@ -20,7 +19,8 @@ where
 impl<Robot> FlightController<'static, Robot>
 where
     Robot:
-        rusty_robot_drivers::imu_traits::ImuReader + rusty_robot_drivers::gps_traits::Gps + Motors,
+        // rusty_robot_drivers::imu_traits::ImuReader + rusty_robot_drivers::gps_traits::Gps + Motors,
+        rusty_robot_drivers::imu::imu_traits::ImuReader + Motors,
 {
     pub fn new(drone: &'static Robot) -> Self {
         FlightController {
@@ -34,15 +34,14 @@ where
         let _elapsed = self.timebound.step();
 
         let _imu_data =
-            <Robot as rusty_robot_drivers::imu_traits::ImuReader>::get_data(&self.drone);
+            <Robot as rusty_robot_drivers::imu::imu_traits::ImuReader>::get_data(&self.drone);
         // TODO update estimated position via kalman filter
 
         // FIXME only use gps data if robot provides it
-        let _gps_data =
-            <Robot as rusty_robot_drivers::gps_traits::Gps>::get_data(&self.drone).unwrap();
+        // let _gps_data =
+        //     <Robot as rusty_robot_drivers::gps_traits::Gps>::get_data(&self.drone).unwrap();
 
         let velocities_pct: [u8; 4] = [51, 51, 51, 51];
         <Robot as Motors>::set_data(self.drone, velocities_pct);
-
     }
 }
