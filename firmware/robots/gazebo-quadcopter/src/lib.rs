@@ -1,7 +1,7 @@
 use gz::{self as gazebosim};
 
 use rusty_robot_drivers::imu::{ImuData, ImuReader, Vector3};
-use rusty_robot_drivers::{gps_traits, nmea};
+use rusty_robot_drivers::gnns::{GNNS, nmea};
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
 
@@ -127,7 +127,7 @@ impl ImuReader for GazeboDrone {
     }
 }
 
-impl gps_traits::Gps for GazeboDrone {
+impl GNNS for GazeboDrone {
     fn get_data(&self) -> Result<nmea::Nmea, &str> {
         match self.gps_signal.try_take() {
             Some(data) => return Ok(data),
