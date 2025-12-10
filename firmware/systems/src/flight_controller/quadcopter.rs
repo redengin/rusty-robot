@@ -1,5 +1,4 @@
-use crate::TimeBound;
-
+use crate::utils::TimeBound;
 
 /// Quad Copter Motors
 pub trait Motors {
