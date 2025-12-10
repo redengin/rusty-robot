@@ -95,8 +95,8 @@ pub enum AccelScale {
 
 /// https://invensense.tdk.com/wp-content/uploads/2020/04/ds-000347_icm-42688-p-datasheet.pdf?page=77
 pub enum PowerMode {
-    Sleep = 0,          // disables GYROSCOPE and ACCELEROMETER
-    Enabled = 0b1111,   // LN GYROSCOPE, LN ACCELEROMETER
+    Sleep = 0,        // disables GYROSCOPE and ACCELEROMETER
+    Enabled = 0b1111, // LN GYROSCOPE, LN ACCELEROMETER
 }
 
 impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> {
@@ -157,13 +157,12 @@ impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> 
         return match write_register(self.spi_dev, REG_PWR_MGMT0, mode as u8).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
-        }
+        };
     }
 
     pub async fn read_imu(
         &mut self,
-    ) -> Result<crate::imu::ImuData, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error>
-    {
+    ) -> Result<crate::imu::ImuData, <SPIDEVICE as embedded_hal_async::spi::ErrorType>::Error> {
         // burst read all the data
         let mut buf: [u8; 13] = [0xff; 13];
         const REG_START: u8 = 0x1f;
@@ -209,4 +208,3 @@ impl<'a, SPIDEVICE: embedded_hal_async::spi::SpiDevice> ICM42688<'a, SPIDEVICE> 
         })
     }
 }
-

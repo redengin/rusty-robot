@@ -51,5 +51,6 @@ async fn main(spawner: Spawner) {
 
 #[embassy_executor::task]
 async fn drone_task(drone: &'static GazeboDrone) {
+    // operate the drone (simulated) hardware
     drone.run().await;
 }
