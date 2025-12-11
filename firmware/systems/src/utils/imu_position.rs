@@ -1,7 +1,7 @@
 use core::time::Duration;
 
-/// Estimated position - relative to origin
-#[derive(Debug)]
+/// Estimated position tracked via IMU accelerometer
+#[derive(Default, Debug)]
 pub struct ImuPosition {
     current: RelativePosition,
     last_velocity: Velocity,
@@ -22,6 +22,7 @@ pub struct Velocity {
 }
 
 impl ImuPosition {
+
     pub fn new(current: RelativePosition, velocity: Velocity) -> Self
     {
         Self {
@@ -40,13 +41,14 @@ impl ImuPosition {
         self.current.z = self.last_velocity.z * elapsed.as_secs_f32();
 
 
-        // update velocity
+        // update velocity from current acceleration data
         if let Some(acceleration) = imu_data.accelerometer {
             self.last_velocity.x = self.last_velocity.x + (acceleration.x * elapsed.as_secs_f32());
             self.last_velocity.y = self.last_velocity.y + (acceleration.y * elapsed.as_secs_f32());
             self.last_velocity.z = self.last_velocity.z + (acceleration.z * elapsed.as_secs_f32());
         }
 
+        // return the current estimate
         self.current.clone()
     }
 
