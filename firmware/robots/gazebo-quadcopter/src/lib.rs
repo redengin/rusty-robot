@@ -1,3 +1,4 @@
+use embassy_time::Timer;
 use gz::{self as gazebosim};
 
 use rusty_robot_drivers::imu::{ImuData, ImuReader, Vector3};
@@ -114,10 +115,13 @@ impl GazeboDrone {
 }
 
 impl ImuReader for GazeboDrone {
-    fn get_data(&self) -> Result<ImuData, &str> {
-        match self.imu_signal.try_take() {
-            Some(data) => return Ok(data),
-            None => return Err("no data"),
+    async fn get_data(&self) -> Result<ImuData, &str> {
+        // simulate the time to read (yield)
+        Timer::after_millis(1).await;
+
+        return match self.imu_signal.try_take() {
+            Some(data) => Ok(data),
+            None => Err("no data"),
         }
     }
 

@@ -20,9 +20,7 @@ where
 
 impl<Robot> FlightController<'static, Robot>
 where
-    Robot:
-        // rusty_robot_drivers::imu_traits::ImuReader + rusty_robot_drivers::gps_traits::Gps + Motors,
-        rusty_robot_drivers::imu::ImuReader + Motors,
+    Robot: rusty_robot_drivers::imu::ImuReader + Motors,
 {
     pub fn new(drone: &'static Robot) -> Self {
         FlightController {
@@ -32,24 +30,23 @@ where
     }
 
     pub async fn run(&mut self) {
-
         let mut timebound = TimeBound::new();
         loop {
-            log::info!("run loop");
             // determine the elapsed time
             let elapsed = timebound.step();
 
             // use the IMU data
-            if let Ok(imu_data) = <Robot as rusty_robot_drivers::imu::ImuReader>::get_data(&self.drone)
+            if let Ok(imu_data) =
+                <Robot as rusty_robot_drivers::imu::ImuReader>::get_data(&self.drone).await
             {
                 // update the imu estimated position
-                self.imu_position.update(imu_data, elapsed);
+                let imu_position = self.imu_position.update(imu_data, elapsed);
+
+                log::info!("estimated position {:?}", imu_position);
             }
 
             let velocities_pct: [u8; 4] = [51, 51, 51, 51];
             <Robot as Motors>::set_data(self.drone, velocities_pct);
-
-            Timer::after_millis(1).await
         }
 
         // TODO update estimated position via kalman filter
@@ -57,6 +54,5 @@ where
         // FIXME only use gps data if robot provides it
         // let _gps_data =
         //     <Robot as rusty_robot_drivers::gps_traits::Gps>::get_data(&self.drone).unwrap();
-
     }
 }

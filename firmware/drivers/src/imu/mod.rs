@@ -19,12 +19,13 @@ pub struct Vector3 {
     pub z: f32,
 }
 
-
 /// IMU hardware trait
 pub trait ImuReader {
+#[allow(async_fn_in_trait)]
     /// Retrieves the latest available IMU data.
     ///    if necessary, restore the IMU to readable state
-    fn get_data(&self) -> Result<ImuData, &str>;
+    async fn get_data(&self) -> Result<ImuData, &str>;
+#[warn(async_fn_in_trait)]
 
     /// if possible puts the IMU into low-power mode
     fn stop(&self) -> Result<(), &str>;
