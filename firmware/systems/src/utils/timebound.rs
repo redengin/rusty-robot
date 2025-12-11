@@ -1,10 +1,5 @@
-use core::time::Duration;
+/// use embassy primitives
 use embassy_time::Instant;
-
-/// provide relative time anchor
-pub fn now() -> Instant {
-    embassy_time::Instant::now()
-}
 
 /// Calculate duration between each step()
 pub(crate) struct TimeBound {
@@ -13,13 +8,13 @@ pub(crate) struct TimeBound {
 impl TimeBound {
     pub(crate) fn new() -> Self {
         Self {
-            last_instant: now()
+            last_instant: Instant::now()
         }
     }
 
     /// upon each call, report the duration from the last call
-    pub(crate) fn step(&mut self) -> Duration {
-        let now = now();
+    pub(crate) fn step(&mut self) -> core::time::Duration {
+        let now = Instant::now();
         let ret = now - self.last_instant;
         self.last_instant = now;
         ret.into()
