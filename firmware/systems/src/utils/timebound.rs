@@ -1,6 +1,5 @@
-// use embassy for time primitives
-type Instant = embassy_time::Instant;
-type Duration = embassy_time::Duration;
+use core::time::Duration;
+use embassy_time::Instant;
 
 /// provide relative time anchor
 pub fn now() -> Instant {
@@ -23,7 +22,7 @@ impl TimeBound {
         let now = now();
         let ret = now - self.last_instant;
         self.last_instant = now;
-        ret
+        ret.into()
     }
 }
 

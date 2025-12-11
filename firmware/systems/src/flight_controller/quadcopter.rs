@@ -39,6 +39,7 @@ where
             if let Ok(imu_data) =
                 <Robot as rusty_robot_drivers::imu::ImuReader>::get_data(&self.drone).await
             {
+                log::trace!("{:?}", imu_data);
                 // update the imu estimated position
                 let imu_position = self.imu_position.update(imu_data, elapsed);
 
