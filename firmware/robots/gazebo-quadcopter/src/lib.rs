@@ -46,8 +46,6 @@ impl GazeboDrone {
         log::debug!("subscribing to IMU '{}'", self.imu_topic);
         assert!(
             node.subscribe(self.imu_topic.as_str(), |msg: gz::msgs::imu::IMU| {
-                log::trace!("imu msg {:?}", msg.entity_name);
-
                 // convert the message into an IMU state
                 let imu_data = ImuData {
                     accelerometer: Some(Vector3 {
@@ -64,6 +62,7 @@ impl GazeboDrone {
                 };
 
                 // publish the update
+                log::trace!("{:?}", imu_data);
                 self.imu_signal.signal(imu_data);
             })
         );
@@ -72,8 +71,6 @@ impl GazeboDrone {
         log::debug!("subscribing to GPS '{}'", self.gps_topic);
         assert!(
             node.subscribe(self.gps_topic.as_str(), |msg: gz::msgs::navsat::NavSat| {
-                log::trace!("gps msg {}", msg.frame_id);
-
                 // convert the message into a GPS update
                 let mut nmea = nmea::Nmea::default();
                 nmea.latitude = Some(msg.latitude_deg);
@@ -81,6 +78,7 @@ impl GazeboDrone {
                 nmea.altitude = Some(msg.altitude as f32);
 
                 // publish the update
+                log::trace!("{:?}", nmea);
                 self.gps_signal.signal(nmea);
             })
         );

@@ -26,10 +26,8 @@ async fn main(spawner: Spawner) {
     let robot_name = &args[1];
     info!("{} under autonomous control", robot_name);
 
-    // create the drone as a static instance
-    let drone = &mut *mk_static!(GazeboDrone, GazeboDrone::new(robot_name));
-
     // spawn the drone thread
+    let drone = &mut *mk_static!(GazeboDrone, GazeboDrone::new(robot_name));
     spawner.spawn(drone_task(drone)).unwrap();
 
     // run the flight controller on the main
@@ -37,6 +35,7 @@ async fn main(spawner: Spawner) {
     fc.run().await;
 
 }
+
 
 #[task]
 async fn drone_task(drone: &'static GazeboDrone) {
