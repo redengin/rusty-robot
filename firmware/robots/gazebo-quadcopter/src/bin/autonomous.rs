@@ -1,6 +1,5 @@
 //! Autonomous Drone (maneuvers to points in space)
 use embassy_executor::{main, task};
-use embassy_time::{Duration, Ticker};
 use log::*;
 use std::env;
 

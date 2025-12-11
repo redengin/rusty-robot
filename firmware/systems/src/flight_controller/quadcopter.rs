@@ -1,5 +1,3 @@
-use embassy_time::Timer;
-
 use crate::utils::TimeBound;
 
 /// Quad Copter Motors
@@ -15,6 +13,7 @@ where
 {
     drone: &'a Robot,
 
+    /// estimated position using only IMU
     imu_position: crate::utils::ImuPosition,
 }
 
@@ -39,13 +38,11 @@ where
             if let Ok(imu_data) =
                 <Robot as rusty_robot_drivers::imu::ImuReader>::get_data(&self.drone).await
             {
-                log::trace!("{:?}", imu_data);
                 // update the imu estimated position
-                let imu_position = self.imu_position.update(imu_data, elapsed);
-
-                log::info!("estimated position {:?}", imu_position);
+                let _imu_position = self.imu_position.update(imu_data, elapsed);
             }
 
+            // FIXME for now just set the motors to a small upward velocity
             let velocities_pct: [u8; 4] = [51, 51, 51, 51];
             <Robot as Motors>::set_data(self.drone, velocities_pct);
         }
